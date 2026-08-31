@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIMA LAB (ヒマラボ) - 誰でも気軽に暇つぶしチャット</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-script@2/dist/umd/supabase.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #f4f6f8; color: #333; }
+    header { background: #1e293b; color: white; padding: 15px; text-align: center; font-weight: bold; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; }
+    .chat-box { height: 350px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background: #fafafa; margin-bottom: 15px; }
+    .msg { margin-bottom: 10px; padding: 8px 12px; border-radius: 6px; background: #e2e8f0; width: fit-content; max-width: 80%; }
+    .input-area { display: flex; gap: 10px; }
+    input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <header>HIMA LAB (ヒマラボ)</header>
+  <div class="container">
+    <p style="font-size: 14px; color: #666;">誰でも気軽に話せる暇つぶしルーム</p>
+    <div class="chat-box" id="chatBox">
+      <div class="msg"><b>システム:</b> HIMA LABへようこそ！安全で気軽な会話を楽しみましょう。</div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="msgInput" placeholder="メッセージを入力...">
+      <button onclick="sendMessage()">送信</button>
+    </div>
+  </div>
+
+  <script>
+    // ここにSupabaseの情報を接続します
+    const SUPABASE_URL = "先ほどコピーしたProject_URL";
+    const SUPABASE_KEY = "先ほどコピーしたAPI_key";
+    
+    // チャット送信処理
+    function sendMessage() {
+      const input = document.getElementById('msgInput');
+      if (!input.value.trim()) return;
+      const box = document.getElementById('chatBox');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg';
+      msgDiv.innerHTML = `<b>ゲスト:</b> ${input.value}`;
+      box.appendChild(msgDiv);
+      box.scrollTop = box.scrollHeight;
+      input.value = '';
+    }
+  </script>
+</body>
+</html>
