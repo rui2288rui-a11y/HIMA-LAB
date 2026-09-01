@@ -701,7 +701,7 @@ const { error: profileError } = await supabaseClient
   .upsert({
     id: myAuthUserId,
     username: myUserName,
-    gender: myGender,
+    gender: myGender === '男性' ? 'male' : myGender === '女性' ? 'female' : 'other',
     avatar_url: myAvatar,
     bio: myBio
   });
