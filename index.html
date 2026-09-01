@@ -13,7 +13,7 @@
   <style>
     :root {
       --bg-base: #06080d;
-      --panel-bg: rgba(15, 21, 32, 0.75);
+      --panel-bg: rgba(15, 21, 32, 0.85);
       --panel-border: rgba(255, 255, 255, 0.08);
       --text-primary: #f1f5f9;
       --text-secondary: #94a3b8;
@@ -50,23 +50,18 @@
     .sidebar-content { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px 20px; }
 
-    .avatar-render { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden; flex-shrink: 0; }
-    .avatar-render img { width: 100%; height: 100%; object-fit: cover; }
-
     .user-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--panel-border); border-radius: 8px; }
+    .avatar-icon-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
     .progress-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--panel-border); border-top-color: var(--accent-color); animation: spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .match-cards { display: flex; gap: 32px; align-items: center; }
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
-    .avatar-placeholder-lg { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 36px; overflow: hidden; }
-    .avatar-placeholder-lg img { width: 100%; height: 100%; object-fit: cover; }
 
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; }
     .chat-header { padding: 12px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-    .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 16px; }
-    .chat-messages-inner { display: flex; flex-direction: column; gap: 16px; }
+    .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
 
     .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
@@ -80,25 +75,23 @@
 
     .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-action-primary:hover { background: var(--accent-hover); }
-    .btn-action-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-action-primary:disabled { background: #334155; cursor: not-allowed; opacity: 0.6; }
     .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
     .btn-action-secondary:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-action-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); color: #fca5a5; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; }
 
-    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-card { background: #0f1520; border: 1px solid var(--panel-border); border-radius: 16px; padding: 28px; width: 460px; max-width: 90%; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-card { background: #0f1520; border: 1px solid var(--panel-border); border-radius: 16px; padding: 28px; width: 460px; max-width: 92%; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
     .modal-title { font-size: 18px; font-weight: 700; text-align: center; }
 
-    .avatar-selector { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
-    .avatar-option { font-size: 26px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); transition: all 0.2s; }
+    .avatar-selector { display: flex; gap: 8px; justify-content: center; align-items: center; }
+    .avatar-option { font-size: 24px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); transition: all 0.2s; }
     .avatar-option.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.3); }
 
-    .custom-file-upload { display: inline-block; padding: 6px 12px; border: 1px solid var(--panel-border); border-radius: 6px; font-size: 12px; cursor: pointer; background: rgba(255,255,255,0.05); }
+    .terms-box { font-size: 12px; color: var(--text-secondary); background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 12px; border-radius: 8px; height: 140px; overflow-y: auto; line-height: 1.6; }
 
-    .terms-box { font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 12px; border-radius: 8px; height: 130px; overflow-y: auto; line-height: 1.6; }
-
-    .call-active-window { display: none; position: absolute; top: 70px; right: 20px; width: 300px; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; z-index: 10; flex-direction: column; gap: 12px; backdrop-filter: blur(12px); }
-    .call-video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 110px; }
+    .call-active-window { display: none; position: absolute; top: 70px; right: 20px; width: 320px; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; z-index: 10; flex-direction: column; gap: 12px; backdrop-filter: blur(12px); }
+    .call-video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 120px; }
     .call-video-box { background: #000; border-radius: 8px; width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
@@ -106,31 +99,33 @@
 
   <div id="canvas-container"></div>
 
+  <!-- 1. プロフィール設定モーダル -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
-      <div class="modal-title">プロフィール設定</div>
+      <div class="modal-title">初期プロフィール設定</div>
       
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">アイコンを選択</label>
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">アイコン選択（プリセットまたは画像アップロード）</label>
         <div class="avatar-selector">
           <span class="avatar-option selected" onclick="selectPresetAvatar('🐱', this)">🐱</span>
           <span class="avatar-option" onclick="selectPresetAvatar('🐶', this)">🐶</span>
           <span class="avatar-option" onclick="selectPresetAvatar('🦊', this)">🦊</span>
           <span class="avatar-option" onclick="selectPresetAvatar('🐼', this)">🐼</span>
-          <label class="custom-file-upload">
-            📁 ファイルから画像を選択
-            <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleCustomAvatar(event)">
-          </label>
+          <span class="avatar-option" onclick="selectPresetAvatar('🐯', this)">🐯</span>
         </div>
-        <div id="preview-avatar-container" style="display:none; text-align:center; margin-top:4px;">
-          <span style="font-size:11px; color:var(--text-muted);">選択中の画像プレビュー:</span>
-          <div class="avatar-render" style="margin: 4px auto;"><img id="custom-avatar-img" src="" alt=""></div>
+        <div style="text-align:center; margin-top:4px;">
+          <label for="custom-avatar-input" class="btn-action-secondary" style="padding:6px 16px; font-size:12px; cursor:pointer; display:inline-block;">📁 ファイルから画像を選択</label>
+          <input type="file" id="custom-avatar-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+        </div>
+        <div id="avatar-preview-container" style="display:none; text-align:center; margin-top:6px;">
+          <span style="font-size:11px; color:var(--text-muted);">プレビュー: </span>
+          <img id="avatar-preview-img" style="width:40px; height:40px; border-radius:50%; object-fit:cover; vertical-align:middle; border:2px solid var(--accent-color);">
         </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">ユーザーネーム</label>
-        <input type="text" id="init-username" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;" placeholder="例: ゲスト123" maxlength="15">
+        <input type="text" id="init-username" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;" placeholder="例: テスター1" maxlength="15">
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -143,29 +138,37 @@
       </div>
 
       <div style="display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">利用規約（必ずお読みください）</label>
-        <div class="terms-box">
-          <strong>【HIMA-LAB 利用規約】</strong><br><br>
-          第1条（目的）本サービスは、ユーザー間の健全なコミュニケーションを提供することを目的とします。<br>
-          第2条（禁止事項）以下の行為を禁止します。<br>
-          ・公序良俗に反する発言、画像、映像の送信<br>
-          ・他者への侮辱、誹謗中傷、ハラスメント行為<br>
-          ・許可のない商業活動や勧誘行為<br>
-          第3条（違反の措置）運営は、禁止行為が確認された場合、事前通知なく利用停止措置を行います。
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">利用規約（スクロールして内容を確認してください）</label>
+        <div class="terms-box" id="terms-box" onscroll="checkTermsScroll()">
+          <strong>第1条（目的）</strong><br>
+          本サービスは、ユーザー相互のリアルタイムなコミュニケーションおよびネットワーキングを目的としたオンラインプラットフォームです。<br><br>
+          <strong>第2条（禁止事項）</strong><br>
+          ユーザーは、本サービスの利用にあたり、以下の行為を行ってはなりません。<br>
+          1. 他のユーザーに対する暴言、不快感を与える言動、嫌がらせ、誹謗中傷行為。<br>
+          2. 公序良俗に反するコンテンツ、猥褻な画像、著作権を侵害するメディアの送信。<br>
+          3. 商業目的の宣伝、勧誘、その他営業行為。<br>
+          4. システムへの不正アクセス、データ破壊、サービス妨害行為。<br><br>
+          <strong>第3条（アカウント管理および自己責任）</strong><br>
+          ユーザーは自身のプロフィール情報および通信内容について一切の責任を負うものとします。<br><br>
+          <strong>第4条（利用停止）</strong><br>
+          規約に違反した場合、運営者は予告なく該当ユーザーの接続を制限できるものとします。<br><br>
+          <strong>第5条（免責事項）</strong><br>
+          通信状態や技術的不具合により発生した損害について、当サービスは責任を負いません。
         </div>
       </div>
 
       <label style="font-size:12px; display:flex; align-items:center; gap:8px; cursor:pointer;">
-        <input type="checkbox" id="terms-agree" onchange="toggleSubmitBtn()"> 利用規約の内容を確認し、同意します
+        <input type="checkbox" id="terms-agree" disabled> 利用規約の全文を確認し、同意します
       </label>
 
-      <button id="btn-save-profile" class="btn-action-primary" onclick="saveInitialProfile()" disabled>同意して開始</button>
+      <button class="btn-action-primary" id="btn-save-profile" onclick="saveInitialProfile()" disabled>同意して開始</button>
     </div>
   </div>
 
+  <!-- 2. 通話形式選択モーダル -->
   <div id="modal-call-type" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center;">
-      <div class="modal-title">通話形式の選択</div>
+      <div class="modal-title">通話リクエスト送信</div>
       <p style="font-size:13px; color:var(--text-secondary);">どちらの形式で呼び出しますか？</p>
       
       <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
@@ -176,6 +179,7 @@
     </div>
   </div>
 
+  <!-- 3. 発信中（呼び出し中）モーダル -->
   <div id="modal-calling" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center;">
       <div class="progress-circle" style="margin: 0 auto;">呼び出し</div>
@@ -185,10 +189,11 @@
     </div>
   </div>
 
+  <!-- 4. 着信応答モーダル（相手側の画面） -->
   <div id="modal-incoming" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center;">
-      <div class="avatar-placeholder-lg" style="margin: 0 auto;" id="incoming-avatar-box"></div>
-      <div class="modal-title" id="incoming-caller-name" style="margin-top:12px;">○○ から着信</div>
+      <div style="display:flex; justify-content:center; margin-bottom:8px;" id="incoming-avatar-box"></div>
+      <div class="modal-title" id="incoming-caller-name">○○ から着信</div>
       <p style="font-size:13px; color:var(--text-secondary);" id="incoming-type-text">通話の着信があります</p>
       
       <div style="display:flex; gap:12px; margin-top:16px; justify-content:center;">
@@ -210,14 +215,15 @@
       </div>
     </header>
 
+    <!-- ダッシュボード -->
     <div id="view-dashboard" class="view-section active">
       <section class="viewport-panel">
         <h2>1対1のマッチングを開始</h2>
-        <p style="font-size:13px; color:var(--text-secondary);">オンラインの別ユーザーをリアルタイムで検索します</p>
+        <p style="font-size:13px; color:var(--text-secondary);">オンライン中の別タブ/別ブラウザのユーザーを検索します</p>
         <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入る</button>
       </section>
       <aside class="sidebar-panel">
-        <div class="sidebar-header">接続中のユーザー</div>
+        <div class="sidebar-header">接続中のユーザー一覧</div>
         <div class="sidebar-content" id="sidebar-users"></div>
       </aside>
       <section class="threads-panel">
@@ -225,28 +231,32 @@
       </section>
     </div>
 
+    <!-- マッチング待機中 -->
     <div id="view-matching" class="view-section">
       <h2>オンラインユーザーを探しています...</h2>
       <div class="progress-circle">検索中</div>
+      <p style="font-size:12px; color:var(--text-muted);">※別のブラウザタブで「待機キュー」に入るとマッチングします</p>
       <button class="btn-action-secondary" onclick="cancelMatchingQueue()">キャンセル</button>
     </div>
 
+    <!-- マッチ成立 -->
     <div id="view-matched" class="view-section">
       <h2>マッチング完了！</h2>
       <div class="match-cards">
         <div class="user-card">
-          <div class="avatar-placeholder-lg" id="my-avatar-display"></div>
-          <div id="my-display-name">あなた</div>
+          <div id="my-avatar-display"></div>
+          <div id="my-display-name" style="font-weight:600;">あなた</div>
         </div>
         <div style="font-size:20px; font-weight:700; color:var(--accent-color);">VS</div>
         <div class="user-card">
-          <div class="avatar-placeholder-lg" id="partner-avatar-display"></div>
-          <div id="matched-user-name">相手</div>
+          <div id="partner-avatar-display"></div>
+          <div id="matched-user-name" style="font-weight:600;">相手</div>
         </div>
       </div>
       <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを開始</button>
     </div>
 
+    <!-- チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header">
@@ -260,13 +270,11 @@
             <video id="local-video" class="call-video-box" autoplay muted playsinline></video>
             <video id="remote-video" class="call-video-box" autoplay playsinline></video>
           </div>
-          <button class="btn-action-danger" style="width:100%; padding:6px;" onclick="endCall()">通話を終了</button>
+          <button class="btn-action-danger" style="width:100%; padding:6px; margin-top:4px;" onclick="endCall()">通話を終了</button>
         </div>
         
-        <div class="chat-messages">
-          <div class="chat-messages-inner" id="chat-messages">
-            <div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>
-          </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>
         </div>
 
         <div class="chat-input-area">
@@ -289,8 +297,8 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const myUserId = 'user_' + Math.floor(Math.random() * 100000);
-    let myUserName = 'Guest';
-    let myAvatar = '🐱'; // 文字列またはDataURL
+    let myUserName = '';
+    let myAvatar = '🐱'; // Emoji or Base64 Image
     let isCustomAvatar = false;
     let myGender = '未回答';
 
@@ -301,54 +309,59 @@
     let localStream = null;
     const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19020' }] };
 
+    /* アバター選択・画像アップロード処理 */
     function selectPresetAvatar(avatar, el) {
       myAvatar = avatar;
       isCustomAvatar = false;
       document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
       el.classList.add('selected');
-      document.getElementById('preview-avatar-container').style.display = 'none';
+      document.getElementById('avatar-preview-container').style.display = 'none';
     }
 
-    function handleCustomAvatar(event) {
-      const file = event.target.files[0];
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
       if (!file) return;
+      if (file.size > 1024 * 1024 * 2) { alert('ファイルサイズは2MB以下にしてください'); return; }
 
       const reader = new FileReader();
-      reader.onload = function(e) {
-        myAvatar = e.target.result;
+      reader.onload = function(evt) {
+        myAvatar = evt.target.result;
         isCustomAvatar = true;
         document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
-        document.getElementById('custom-avatar-img').src = myAvatar;
-        document.getElementById('preview-avatar-container').style.display = 'block';
+        document.getElementById('avatar-preview-img').src = myAvatar;
+        document.getElementById('avatar-preview-container').style.display = 'block';
       };
       reader.readAsDataURL(file);
     }
 
-    function renderAvatarHTML(avatarVal) {
-      if (avatarVal && avatarVal.startsWith('data:image')) {
-        return `<img src="${avatarVal}" alt="avatar">`;
+    /* 利用規約のスクロールチェック */
+    function checkTermsScroll() {
+      const box = document.getElementById('terms-box');
+      if (box.scrollHeight - box.scrollTop <= box.clientHeight + 10) {
+        document.getElementById('terms-agree').disabled = false;
+        document.getElementById('btn-save-profile').disabled = false;
       }
-      return avatarVal || '🐱';
     }
 
-    function toggleSubmitBtn() {
-      const isChecked = document.getElementById('terms-agree').checked;
-      document.getElementById('btn-save-profile').disabled = !isChecked;
+    /* アイコン表示用のHTML生成ヘルパー */
+    function renderAvatarHTML(avatarData, size = '36px') {
+      if (avatarData && avatarData.startsWith('data:image')) {
+        return `<img src="${avatarData}" class="avatar-icon-img" style="width:${size}; height:${size};">`;
+      }
+      return `<div class="avatar-icon-img" style="width:${size}; height:${size}; font-size:calc(${size} * 0.5);">${avatarData || '🐱'}</div>`;
     }
 
     function saveInitialProfile() {
       const name = document.getElementById('init-username').value.trim();
       if (!name) { alert('ユーザーネームを入力してください'); return; }
+      if (!document.getElementById('terms-agree').checked) { alert('利用規約に同意してください'); return; }
 
       myUserName = name;
       myGender = document.getElementById('init-gender').value;
 
-      document.getElementById('user-profile-badge').innerHTML = `
-        <div class="avatar-render">${renderAvatarHTML(myAvatar)}</div>
-        <span>${myUserName}</span>
-      `;
+      document.getElementById('user-profile-badge').innerHTML = `${renderAvatarHTML(myAvatar, '28px')} <span>${myUserName}</span>`;
       document.getElementById('my-display-name').innerText = myUserName;
-      document.getElementById('my-avatar-display').innerHTML = renderAvatarHTML(myAvatar);
+      document.getElementById('my-avatar-display').innerHTML = renderAvatarHTML(myAvatar, '80px');
       document.getElementById('modal-profile').style.display = 'none';
 
       initRealtime();
@@ -370,13 +383,14 @@
         if (sidebar) {
           sidebar.innerHTML = onlineUsers.map(u => `
             <div class="user-item">
-              <div class="avatar-render">${renderAvatarHTML(u.avatar)}</div>
-              <div style="font-size:13px;">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
+              ${renderAvatarHTML(u.avatar, '32px')}
+              <div style="font-size:13px; font-weight:500;">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
             </div>
           `).join('');
         }
       });
 
+      // チャットメッセージ受信
       room.on('broadcast', { event: 'chat_message' }, (payload) => {
         const data = payload.payload;
         if (currentPartner && (data.senderId === myUserId || data.senderId === currentPartner.id)) {
@@ -384,6 +398,7 @@
         }
       });
 
+      // マッチング通知受信
       room.on('broadcast', { event: 'match_invite' }, (payload) => {
         const data = payload.payload;
         if (data.targetId === myUserId) {
@@ -391,17 +406,19 @@
         }
       });
 
+      // 通話着信受信
       room.on('broadcast', { event: 'call_request' }, (payload) => {
         const data = payload.payload;
         if (data.targetId === myUserId) {
           pendingCallData = data;
-          document.getElementById('incoming-avatar-box').innerHTML = renderAvatarHTML(data.callerAvatar);
+          document.getElementById('incoming-avatar-box').innerHTML = renderAvatarHTML(data.callerAvatar, '60px');
           document.getElementById('incoming-caller-name').innerText = `${data.callerName} から着信`;
           document.getElementById('incoming-type-text').innerText = data.isVideo ? '📹 ビデオ通話の着信があります' : '🎙️ 音声通話の着信があります';
           document.getElementById('modal-incoming').style.display = 'flex';
         }
       });
 
+      // 通話応答受信（発信元に届く）
       room.on('broadcast', { event: 'call_response' }, async (payload) => {
         const data = payload.payload;
         if (data.targetId === myUserId) {
@@ -414,6 +431,7 @@
         }
       });
 
+      // WebRTC シグナリング
       room.on('broadcast', { event: 'rtc_signal' }, async (payload) => {
         const data = payload.payload;
         if (data.targetId !== myUserId) return;
@@ -438,6 +456,7 @@
       });
     }
 
+    /* リアルタイムオンラインユーザーとのマッチング制御 */
     let matchingInterval = null;
     function startMatchingQueue() {
       switchView('view-matching');
@@ -473,10 +492,11 @@
     function triggerMatchSuccess(partner) {
       currentPartner = partner;
       document.getElementById('matched-user-name').innerText = partner.name;
-      document.getElementById('partner-avatar-display').innerHTML = renderAvatarHTML(partner.avatar);
+      document.getElementById('partner-avatar-display').innerHTML = renderAvatarHTML(partner.avatar, '80px');
       switchView('view-matched');
     }
 
+    /* 通話モーダル操作 */
     function openCallTypeModal() {
       if (!currentPartner) { alert('相手がいません'); return; }
       document.getElementById('modal-call-type').style.display = 'flex';
@@ -529,6 +549,7 @@
       });
     }
 
+    /* WebRTC 接続処理 */
     async function startRtcConnection(isVideo, isOffer) {
       document.getElementById('call-active-window').style.display = 'flex';
       document.getElementById('call-status-label').innerText = isVideo ? '📹 ビデオ通話中' : '🎙️ 音声通話中';
@@ -550,7 +571,7 @@
           });
         }
       } catch (e) {
-        alert('マイク/カメラへのアクセスが拒否されました');
+        alert('マイク/カメラの取得に失敗しました');
         endCall();
       }
     }
@@ -580,9 +601,9 @@
     function openDirectChat() {
       document.getElementById('chat-title').innerText = `${currentPartner.name} とのチャット`;
       document.getElementById('chat-partner-info').innerHTML = `
-        <div style="text-align:center; padding:20px 0;">
-          <div class="avatar-placeholder-lg" style="margin: 0 auto 12px;">${renderAvatarHTML(currentPartner.avatar)}</div>
-          <div style="font-weight:700;">${currentPartner.name}</div>
+        <div style="text-align:center; padding:20px 0; display:flex; flex-direction:column; align-items:center; gap:8px;">
+          ${renderAvatarHTML(currentPartner.avatar, '64px')}
+          <div style="font-weight:700; font-size:16px;">${currentPartner.name}</div>
           <div style="font-size:12px; color:var(--text-muted);">性別: ${currentPartner.gender}</div>
         </div>
       `;
@@ -612,6 +633,7 @@
       msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
       msgDiv.innerHTML = `<div class="message-bubble">${data.text}</div>`;
       container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
     }
 
     function switchView(viewId) {
@@ -619,7 +641,7 @@
       document.getElementById(viewId).classList.add('active');
     }
 
-    /* Three.js 背景 */
+    /* Three.js 背景アニメーション */
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
