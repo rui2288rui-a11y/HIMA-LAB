@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HIMA-LAB - Realtime Community</title>
+  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Three.js (3D背景演出用) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,8 +79,12 @@
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; }
     .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-    .message-item { display: flex; gap: 12px; max-width: 70%; }
-    .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; }
+    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
+    .message-item.self { align-self: flex-end; align-items: flex-end; }
+    .message-sender { font-size: 11px; color: var(--text-muted); }
+    .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; word-break: break-all; }
+    .message-item.self .message-bubble { background: var(--accent-color); border: none; }
+    
     .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; }
     .chat-input { flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; }
 
@@ -109,6 +115,7 @@
       </div>
     </header>
 
+    <!-- 1. ダッシュボード画面 -->
     <div id="view-dashboard" class="view-section active">
       <section class="viewport-panel">
         <h2 style="font-size:20px; font-weight:600;">1対1のセッションを開始</h2>
@@ -128,6 +135,7 @@
       </section>
     </div>
 
+    <!-- 2. マッチング中画面 -->
     <div id="view-matching" class="view-section">
       <h2 style="font-size:24px; font-weight:600;">マッチング中...</h2>
       <p style="color:var(--text-secondary); font-size:14px;">希望条件と相性の良い人を検索しています。</p>
@@ -135,6 +143,7 @@
       <button class="btn-action-secondary" onclick="switchView('view-matched')" style="margin-top:20px;">（デモ：マッチ成功させる）</button>
     </div>
 
+    <!-- 3. マッチ成立画面 -->
     <div id="view-matched" class="view-section">
       <h2 style="font-size:28px; font-weight:700;">マッチしました！</h2>
       <div class="match-cards">
@@ -151,24 +160,26 @@
       <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを始める</button>
     </div>
 
+    <!-- 4. チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header" id="chat-title">チャットルーム</div>
         <div class="chat-messages" id="chat-messages">
           <div class="message-item">
-            <div class="message-bubble">セッションが開始されました。</div>
+            <span class="message-sender">System</span>
+            <div class="message-bubble">リアルタイムチャットへようこそ！メッセージを入力して送信してください。</div>
           </div>
         </div>
         <div class="chat-input-area">
-          <input type="text" class="chat-input" placeholder="メッセージを入力...">
-          <button class="btn-action-primary" style="padding:0 24px;">送信</button>
+          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <button class="btn-action-primary" style="padding:0 24px;" onclick="sendMessage()">送信</button>
           <button class="btn-action-secondary" onclick="switchView('view-dashboard')" style="padding:0 16px;">退室</button>
         </div>
       </div>
       <aside class="sidebar-panel" style="border-radius:0; border-top:none; border-bottom:none; border-right:none;">
         <div class="sidebar-header">参加メンバー</div>
         <div class="sidebar-content">
-          <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">オンライン: 2名</div>
+          <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">オンラインリアルタイム同期中</div>
         </div>
       </aside>
     </div>
@@ -180,47 +191,89 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ランダムな匿名ユーザー生成（仮）
+    // ランダムな匿名ユーザー生成
     const myUserId = 'user_' + Math.floor(Math.random() * 10000);
     const myUserName = 'Guest_' + myUserId.slice(-4);
 
-    /* リアルタイム Presence (オンライン監視) 設定 */
-    const room = supabaseClient.channel('global-presence');
+    /* リアルタイム Presence & Chat チャンネルの設定 */
+    const room = supabaseClient.channel('global-room', {
+      config: { broadcast: { self: true } }
+    });
 
-    room
-      .on('presence', { event: 'sync' }, () => {
-        const state = room.presenceState();
-        let userList = [];
-        
-        for (let id in state) {
-          state[id].forEach(u => userList.push(u));
-        }
+    // 1. オンライン状態の同期
+    room.on('presence', { event: 'sync' }, () => {
+      const state = room.presenceState();
+      let userList = [];
+      for (let id in state) {
+        state[id].forEach(u => userList.push(u));
+      }
 
-        // オンライン人数更新
-        document.getElementById('online-count').innerText = `${userList.length} online`;
+      document.getElementById('online-count').innerText = `${userList.length} online`;
 
-        // サイドバーのオンラインユーザー一覧を更新
-        const sidebar = document.getElementById('sidebar-users');
-        if (userList.length === 0) {
-          sidebar.innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center; padding-top:20px;">接続ユーザーはいません</div>`;
-        } else {
-          sidebar.innerHTML = userList.map(u => `
-            <div class="user-item">
-              <div class="user-item-avatar">${u.username.slice(0,2).toUpperCase()}</div>
-              <div class="user-item-name">${u.username}</div>
-            </div>
-          `).join('');
-        }
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await room.track({
-            user_id: myUserId,
-            username: myUserName,
-            online_at: new Date().toISOString()
-          });
+      const sidebar = document.getElementById('sidebar-users');
+      if (userList.length === 0) {
+        sidebar.innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center; padding-top:20px;">接続ユーザーはいません</div>`;
+      } else {
+        sidebar.innerHTML = userList.map(u => `
+          <div class="user-item">
+            <div class="user-item-avatar">${u.username.slice(0,2).toUpperCase()}</div>
+            <div class="user-item-name">${u.username} ${u.user_id === myUserId ? '(あなた)' : ''}</div>
+          </div>
+        `).join('');
+      }
+    });
+
+    // 2. メッセージ受信イベントの購読
+    room.on('broadcast', { event: 'chat_message' }, (payload) => {
+      const msgData = payload.payload;
+      appendMessage(msgData.sender, msgData.text, msgData.senderId === myUserId);
+    });
+
+    room.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await room.track({
+          user_id: myUserId,
+          username: myUserName,
+          online_at: new Date().toISOString()
+        });
+      }
+    });
+
+    /* メッセージ送信処理 */
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: {
+          sender: myUserName,
+          senderId: myUserId,
+          text: text
         }
       });
+
+      input.value = '';
+    }
+
+    /* メッセージ画面追加描画 */
+    function appendMessage(sender, text, isSelf) {
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
+      msgDiv.innerHTML = `
+        <span class="message-sender">${sender}</span>
+        <div class="message-bubble">${escapeHtml(text)}</div>
+      `;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
     /* 画面切り替え制御 */
     function switchView(viewId) {
