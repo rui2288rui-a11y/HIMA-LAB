@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>HIMA-LAB - Realtime Community</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -20,37 +20,40 @@
       --text-muted: #64748b;
       --accent-color: #2563eb;
       --accent-hover: #1d4ed8;
-      --accent-glow: rgba(37, 99, 235, 0.4);
       --danger-color: #ef4444;
-      --online-indicator: #10b981;
+      --success-color: #10b981;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans JP', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; overflow: hidden; position: relative; }
+    body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
 
     #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-    .app-container { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(8px); }
+    .app-container { position: relative; z-index: 1; height: 100vh; height: 100dvh; display: flex; flex-direction: column; backdrop-filter: blur(8px); }
 
-    header { height: 60px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(6, 8, 13, 0.8); flex-shrink: 0; z-index: 10; }
+    header { height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(6, 8, 13, 0.8); flex-shrink: 0; z-index: 10; }
     .brand-title { font-size: 16px; font-weight: 700; color: #ffffff; }
     .brand-sub { font-size: 10px; color: var(--text-muted); }
-    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
     .online-counter { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); padding: 4px 10px; border-radius: 20px; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--online-indicator); box-shadow: 0 0 8px var(--online-indicator); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--success-color); box-shadow: 0 0 8px var(--success-color); }
 
-    .view-section { display: none !important; width: 100%; height: calc(100vh - 60px); overflow: hidden; }
+    .view-section { display: none !important; width: 100%; height: calc(100vh - 56px); height: calc(100dvh - 56px); overflow: hidden; }
     
-    /* PC表示時のレイアウト */
+    /* PC表示 */
     body.mode-pc #view-dashboard.active { display: grid !important; grid-template-columns: 1fr 300px; grid-template-rows: 1fr 180px; gap: 16px; padding: 16px 24px; }
-    body.mode-pc #view-chat.active { display: grid !important; grid-template-columns: 1fr 260px; width: 100%; height: calc(100vh - 60px); }
+    body.mode-pc #view-chat.active { display: grid !important; grid-template-columns: 1fr 260px; width: 100%; height: calc(100vh - 56px); }
     
-    /* スマホ表示時のレイアウト */
+    /* スマホ表示レイアウト（入力欄固定対応） */
     body.mode-mobile #view-dashboard.active { display: flex !important; flex-direction: column; gap: 12px; padding: 12px; overflow-y: auto; }
-    body.mode-mobile #view-dashboard .viewport-panel { min-height: 200px; padding: 24px 12px; }
-    body.mode-mobile #view-dashboard .sidebar-panel { min-height: 250px; }
-    body.mode-mobile #view-dashboard .threads-panel { min-height: 120px; }
-    body.mode-mobile #view-chat.active { display: flex !important; flex-direction: column; width: 100%; height: calc(100vh - 60px); }
-    body.mode-mobile #view-chat .sidebar-panel { display: none; } /* スマホ表示時はサイドバーを隠してメッセージ欄を最大化 */
+    body.mode-mobile #view-dashboard .viewport-panel { min-height: 180px; padding: 20px 12px; }
+    body.mode-mobile #view-dashboard .sidebar-panel { min-height: 200px; }
+    body.mode-mobile #view-dashboard .threads-panel { min-height: 100px; }
+    
+    body.mode-mobile #view-chat.active { display: flex !important; flex-direction: column; width: 100%; height: calc(100vh - 56px); height: calc(100dvh - 56px); position: relative; }
+    body.mode-mobile #view-chat .sidebar-panel { display: none; }
+    body.mode-mobile .chat-main { height: 100%; display: flex; flex-direction: column; position: relative; }
+    body.mode-mobile .chat-messages { flex: 1; padding-bottom: 80px; } /* 入力欄分の余白 */
+    body.mode-mobile .chat-input-area { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(6, 8, 13, 0.98); border-top: 1px solid var(--panel-border); padding: 10px 12px; z-index: 20; }
 
     #view-matching.active { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 16px; }
     #view-matched.active { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 16px; }
@@ -63,9 +66,6 @@
 
     .user-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--panel-border); border-radius: 8px; }
     .avatar-icon-img { border-radius: 50%; object-fit: cover; background: #334155; display: flex; align-items: center; justify-content: center; }
-
-    .progress-circle { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--panel-border); border-top-color: var(--accent-color); animation: spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .match-cards { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 140px; }
@@ -82,38 +82,41 @@
     .message-item.system .message-bubble { background: rgba(255, 255, 255, 0.05); border: none; color: var(--text-secondary); font-size: 11px; padding: 4px 12px; border-radius: 20px; }
 
     .chat-input-area { padding: 12px 16px; border-top: 1px solid var(--panel-border); display: flex; gap: 8px; align-items: center; background: rgba(6, 8, 13, 0.95); }
-    .chat-input { flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); border-radius: 8px; padding: 10px; color: var(--text-primary); outline: none; font-size: 14px; }
+    .chat-input { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; font-size: 15px; }
 
     .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .btn-action-primary:hover { background: var(--accent-hover); }
     .btn-action-primary:disabled { background: #334155; cursor: not-allowed; opacity: 0.6; }
     .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .btn-action-secondary:hover { background: rgba(255, 255, 255, 0.05); }
-    .btn-action-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); color: #fca5a5; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .btn-action-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); color: #fca5a5; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 16px; }
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(12px); padding: 16px; }
     .modal-card { background: #0f1520; border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; width: 440px; max-width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-    .modal-title { font-size: 16px; font-weight: 700; text-align: center; }
+
+    /* 本格的フルスクリーン通話画面UI */
+    .call-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: #06080d; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 24px; }
+    .call-pulse-avatar { position: relative; width: 110px; height: 110px; margin: 30px 0; display: flex; align-items: center; justify-content: center; }
+    .call-pulse-avatar::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--accent-color); opacity: 0.4; animation: pulseWave 1.8s infinite ease-out; }
+    @keyframes pulseWave { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 0; } }
+
+    .call-video-full { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+    .call-video-pip { position: absolute; top: 20px; right: 20px; width: 100px; height: 140px; object-fit: cover; border-radius: 12px; border: 2px solid var(--panel-border); z-index: 2; background: #000; }
 
     .avatar-selector { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; }
     .avatar-option { font-size: 22px; padding: 6px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); }
     .avatar-option.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.3); }
 
     .terms-box { font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; height: 120px; overflow-y: auto; line-height: 1.5; }
-
-    .call-active-window { display: none; position: absolute; top: 60px; right: 10px; left: 10px; max-width: 320px; margin: 0 auto; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; z-index: 10; flex-direction: column; gap: 10px; backdrop-filter: blur(12px); }
-    .call-video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 100px; }
-    .call-video-box { background: #000; border-radius: 8px; width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body class="mode-pc">
 
   <div id="canvas-container"></div>
 
-  <!-- 1. プロフィール設定モーダル -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
-      <div class="modal-title">初期プロフィール設定</div>
+      <div style="font-size:16px; font-weight:700; text-align:center;">初期プロフィール設定</div>
       
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">アイコン選択（プリセットまたは画像）</label>
@@ -136,12 +139,12 @@
 
       <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">ユーザーネーム</label>
-        <input type="text" id="init-username" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:8px 12px; color:#fff;" placeholder="例: ゲストユーザー" maxlength="15">
+        <input type="text" id="init-username" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;" placeholder="例: テスター1" maxlength="15">
       </div>
 
       <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">性別</label>
-        <select id="init-gender" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:8px 12px; color:#fff;">
+        <select id="init-gender" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;">
           <option value="未回答">未回答 / 非公開</option>
           <option value="男性">男性</option>
           <option value="女性">女性</option>
@@ -155,10 +158,9 @@
           本サービスは、ユーザー相互のリアルタイムコミュニケーションを目的としたプラットフォームです。<br><br>
           <strong>第2条（禁止事項）</strong><br>
           1. 他ユーザーへの誹謗中傷、嫌がらせ言動。<br>
-          2. 公序良俗に反するコンテンツや不正画像の送信。<br>
-          3. 商業目的の宣伝行為やスパム送信。<br><br>
+          2. 公序良俗に反するコンテンツや不正画像の送信。<br><br>
           <strong>第3条（免責事項）</strong><br>
-          通信環境やシステム不具合により生じた不利益について、当サービスは一切の責任を負いません。
+          通信環境等による障害について当サービスは責任を負いません。
         </div>
       </div>
 
@@ -170,11 +172,10 @@
     </div>
   </div>
 
-  <!-- 2. 通話選択モーダル -->
   <div id="modal-call-type" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center;">
-      <div class="modal-title">通話リクエスト送信</div>
-      <p style="font-size:12px; color:var(--text-secondary);">どちらの形式で呼び出しますか？</p>
+      <div style="font-size:16px; font-weight:700;">通話リクエスト送信</div>
+      <p style="font-size:12px; color:var(--text-secondary);">呼び出し形式を選択してください</p>
       
       <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
         <button class="btn-action-primary" onclick="initiateCall(false)">🎙️ 音声通話で呼び出す</button>
@@ -184,27 +185,43 @@
     </div>
   </div>
 
-  <!-- 3. 発信中モーダル -->
-  <div id="modal-calling" class="modal-backdrop" style="display:none;">
-    <div class="modal-card" style="text-align:center;">
-      <div class="progress-circle" style="margin: 0 auto;">呼び出し</div>
-      <div class="modal-title" style="margin-top:12px;" id="calling-target-name">相手を呼び出しています...</div>
-      <p style="font-size:12px; color:var(--text-muted);">相手の応答を待っています</p>
-      <button class="btn-action-danger" style="margin-top:8px;" onclick="cancelCall()">キャンセル</button>
+  <div id="screen-calling" class="call-overlay" style="display:none;">
+    <div style="text-align:center; margin-top:20px; z-index:2;">
+      <div style="font-size:14px; color:var(--accent-color); font-weight:600;">発信中...</div>
+      <div style="font-size:22px; font-weight:700; margin-top:6px;" id="calling-target-name">相手名</div>
+    </div>
+
+    <div class="call-pulse-avatar" id="calling-avatar-box" style="z-index:2;"></div>
+
+    <div style="text-align:center; margin-bottom:20px; z-index:2;">
+      <button class="btn-action-danger" style="padding:14px 40px; border-radius:30px; font-size:15px;" onclick="cancelCall()">終話</button>
     </div>
   </div>
 
-  <!-- 4. 着信応答モーダル -->
-  <div id="modal-incoming" class="modal-backdrop" style="display:none;">
-    <div class="modal-card" style="text-align:center;">
-      <div style="display:flex; justify-content:center; margin-bottom:8px;" id="incoming-avatar-box"></div>
-      <div class="modal-title" id="incoming-caller-name">○○ から着信</div>
-      <p style="font-size:12px; color:var(--text-secondary);" id="incoming-type-text">通話の着信があります</p>
-      
-      <div style="display:flex; gap:10px; margin-top:12px; justify-content:center;">
-        <button class="btn-action-danger" style="flex:1;" onclick="rejectIncomingCall()">拒否</button>
-        <button class="btn-action-primary" style="flex:1;" onclick="acceptIncomingCall()">応答する</button>
-      </div>
+  <div id="screen-incoming" class="call-overlay" style="display:none;">
+    <div style="text-align:center; margin-top:20px; z-index:2;">
+      <div style="font-size:14px; color:var(--success-color); font-weight:600;" id="incoming-type-text">音声通話の着信</div>
+      <div style="font-size:22px; font-weight:700; margin-top:6px;" id="incoming-caller-name">○○ から着信</div>
+    </div>
+
+    <div class="call-pulse-avatar" id="incoming-avatar-box" style="z-index:2;"></div>
+
+    <div style="display:flex; gap:20px; width:100%; max-width:320px; margin-bottom:20px; z-index:2;">
+      <button class="btn-action-danger" style="flex:1; padding:14px; border-radius:30px;" onclick="rejectIncomingCall()">拒否</button>
+      <button class="btn-action-primary" style="flex:1; padding:14px; border-radius:30px; background:var(--success-color);" onclick="acceptIncomingCall()">応答する</button>
+    </div>
+  </div>
+
+  <div id="screen-active-call" class="call-overlay" style="display:none;">
+    <video id="remote-video" class="call-video-full" autoplay playsinline></video>
+    <video id="local-video" class="call-video-pip" autoplay muted playsinline></video>
+
+    <div style="position:relative; z-index:2; text-align:center; margin-top:20px; background:rgba(0,0,0,0.5); padding:8px 16px; border-radius:20px;">
+      <div style="font-size:12px; color:#fff;" id="call-active-status">通話接続完了</div>
+    </div>
+
+    <div style="position:relative; z-index:2; margin-bottom:20px;">
+      <button class="btn-action-danger" style="padding:14px 40px; border-radius:30px; font-size:15px;" onclick="endCall()">切断</button>
     </div>
   </div>
 
@@ -215,19 +232,17 @@
         <span class="brand-sub">Realtime Community</span>
       </div>
       <div class="header-actions">
-        <!-- 画面モード切替ボタン -->
         <button class="btn-action-secondary" style="padding:4px 10px; font-size:11px;" id="mode-toggle-btn" onclick="toggleDisplayMode()">📱 スマホ表示</button>
         <div class="online-counter"><div class="status-dot"></div><span id="online-count">0 online</span></div>
         <div id="user-profile-badge" style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600;"></div>
       </div>
     </header>
 
-    <!-- ダッシュボード -->
     <div id="view-dashboard" class="view-section active">
       <section class="viewport-panel">
         <h2 style="font-size:18px;">1対1のマッチングを開始</h2>
-        <p style="font-size:12px; color:var(--text-secondary);">オンライン中の別タブ/別デバイスのユーザーを検索します</p>
-        <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入る</button>
+        <p style="font-size:12px; color:var(--text-secondary);">オンライン中のユーザーとランダムで接続します</p>
+        <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入り検索</button>
       </section>
       <aside class="sidebar-panel">
         <div class="sidebar-header">接続中のユーザー一覧</div>
@@ -238,15 +253,12 @@
       </section>
     </div>
 
-    <!-- マッチング待機中 -->
     <div id="view-matching" class="view-section">
-      <h2>オンラインユーザーを探しています...</h2>
-      <div class="progress-circle">検索中</div>
-      <p style="font-size:12px; color:var(--text-muted);">※別のブラウザタブやスマホで「待機キュー」に入るとマッチングします</p>
+      <h2 style="font-size:16px;">オンラインユーザーを探しています...</h2>
+      <div style="width:60px; height:60px; border-radius:50%; border:3px solid var(--panel-border); border-top-color:var(--accent-color); animation:spin 1s linear infinite; margin:20px 0;"></div>
       <button class="btn-action-secondary" onclick="cancelMatchingQueue()">キャンセル</button>
     </div>
 
-    <!-- マッチ成立 -->
     <div id="view-matched" class="view-section">
       <h2>マッチング完了！</h2>
       <div class="match-cards">
@@ -263,21 +275,11 @@
       <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを開始</button>
     </div>
 
-    <!-- チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header">
           <span id="chat-title" style="font-size:14px;">チャットルーム</span>
-          <button class="btn-action-secondary" style="padding:4px 10px; font-size:11px;" onclick="openCallTypeModal()">📞 通話を開始</button>
-        </div>
-
-        <div class="call-active-window" id="call-active-window">
-          <div style="font-size:11px; font-weight:600; color:var(--text-secondary);" id="call-status-label">通話中</div>
-          <div class="call-video-grid">
-            <video id="local-video" class="call-video-box" autoplay muted playsinline></video>
-            <video id="remote-video" class="call-video-box" autoplay playsinline></video>
-          </div>
-          <button class="btn-action-danger" style="width:100%; padding:4px; margin-top:2px;" onclick="endCall()">通話を終了</button>
+          <button class="btn-action-secondary" style="padding:4px 10px; font-size:11px;" onclick="openCallTypeModal()">📞 通話呼出</button>
         </div>
         
         <div class="chat-messages" id="chat-messages">
@@ -315,31 +317,60 @@
     let localStream = null;
     const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19020' }] };
 
-    /* スマホ / PC 表示モード切替機能 */
-    let currentMode = 'pc';
-    function autoDetectDevice() {
-      if (window.innerWidth <= 768) {
-        setDisplayMode('mobile');
-      } else {
-        setDisplayMode('pc');
+    /* 音声効果音システム (Web Audio API) */
+    let audioCtx = null;
+    let ringtoneTimer = null;
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
     }
 
-    function toggleDisplayMode() {
-      setDisplayMode(currentMode === 'pc' ? 'mobile' : 'pc');
+    function playRingtone(type) { // type: 'outbound' (発信音) | 'inbound' (着信音)
+      initAudioContext();
+      stopRingtone();
+
+      ringtoneTimer = setInterval(() => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+
+        if (type === 'outbound') { // 日本の電話発信音 (400Hz)
+          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 1.0);
+        } else { // 日本の電話着信音 (16Hz変調)
+          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.8);
+        }
+      }, 2000);
     }
 
+    function stopRingtone() {
+      if (ringtoneTimer) { clearInterval(ringtoneTimer); ringtoneTimer = null; }
+    }
+
+    /* 表示モード切替 */
+    let currentMode = 'pc';
+    function autoDetectDevice() { setDisplayMode(window.innerWidth <= 768 ? 'mobile' : 'pc'); }
+    function toggleDisplayMode() { setDisplayMode(currentMode === 'pc' ? 'mobile' : 'pc'); }
     function setDisplayMode(mode) {
       currentMode = mode;
       document.body.className = mode === 'mobile' ? 'mode-mobile' : 'mode-pc';
-      const btn = document.getElementById('mode-toggle-btn');
-      if (btn) {
-        btn.innerText = mode === 'mobile' ? '💻 PC表示' : '📱 スマホ表示';
-      }
+      document.getElementById('mode-toggle-btn').innerText = mode === 'mobile' ? '💻 PC表示' : '📱 スマホ表示';
     }
     window.addEventListener('load', autoDetectDevice);
 
-    /* アバター選択・画像アップロード処理 */
+    /* アバター・プロフィール処理 */
     function selectPresetAvatar(avatar, el) {
       myAvatar = avatar;
       document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
@@ -350,8 +381,6 @@
     function handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      if (file.size > 1024 * 1024 * 2) { alert('ファイルサイズは2MB以下にしてください'); return; }
-
       const reader = new FileReader();
       reader.onload = function(evt) {
         myAvatar = evt.target.result;
@@ -362,7 +391,6 @@
       reader.readAsDataURL(file);
     }
 
-    /* 利用規約のスクロールチェック */
     function checkTermsScroll() {
       const box = document.getElementById('terms-box');
       if (box.scrollHeight - box.scrollTop <= box.clientHeight + 10) {
@@ -371,7 +399,6 @@
       }
     }
 
-    /* アイコン表示ヘルパー */
     function renderAvatarHTML(avatarData, size = '32px') {
       if (avatarData && avatarData.startsWith('data:image')) {
         return `<img src="${avatarData}" class="avatar-icon-img" style="width:${size}; height:${size};">`;
@@ -382,8 +409,8 @@
     function saveInitialProfile() {
       const name = document.getElementById('init-username').value.trim();
       if (!name) { alert('ユーザーネームを入力してください'); return; }
-      if (!document.getElementById('terms-agree').checked) { alert('利用規約に同意してください'); return; }
 
+      initAudioContext();
       myUserName = name;
       myGender = document.getElementById('init-gender').value;
 
@@ -402,9 +429,7 @@
       room.on('presence', { event: 'sync' }, () => {
         const state = room.presenceState();
         onlineUsers = [];
-        for (let id in state) {
-          state[id].forEach(u => onlineUsers.push(u));
-        }
+        for (let id in state) { state[id].forEach(u => onlineUsers.push(u)); }
         document.getElementById('online-count').innerText = `${onlineUsers.length} online`;
 
         const sidebar = document.getElementById('sidebar-users');
@@ -432,25 +457,29 @@
         }
       });
 
+      // 着信受信
       room.on('broadcast', { event: 'call_request' }, (payload) => {
         const data = payload.payload;
         if (data.targetId === myUserId) {
           pendingCallData = data;
-          document.getElementById('incoming-avatar-box').innerHTML = renderAvatarHTML(data.callerAvatar, '50px');
-          document.getElementById('incoming-caller-name').innerText = `${data.callerName} から着信`;
-          document.getElementById('incoming-type-text').innerText = data.isVideo ? '📹 ビデオ通話の着信があります' : '🎙️ 音声通話の着信があります';
-          document.getElementById('modal-incoming').style.display = 'flex';
+          document.getElementById('incoming-avatar-box').innerHTML = renderAvatarHTML(data.callerAvatar, '90px');
+          document.getElementById('incoming-caller-name').innerText = data.callerName;
+          document.getElementById('incoming-type-text').innerText = data.isVideo ? '📹 ビデオ通話の着信' : '🎙️ 音声通話の着信';
+          document.getElementById('screen-incoming').style.display = 'flex';
+          playRingtone('inbound');
         }
       });
 
+      // 通話応答受信
       room.on('broadcast', { event: 'call_response' }, async (payload) => {
         const data = payload.payload;
         if (data.targetId === myUserId) {
-          document.getElementById('modal-calling').style.display = 'none';
+          stopRingtone();
+          document.getElementById('screen-calling').style.display = 'none';
           if (data.accepted) {
             startRtcConnection(data.isVideo, true);
           } else {
-            alert('通話リクエストが拒否されました');
+            alert('通話が拒否されました');
           }
         }
       });
@@ -482,7 +511,6 @@
     let matchingInterval = null;
     function startMatchingQueue() {
       switchView('view-matching');
-
       matchingInterval = setInterval(() => {
         const candidates = onlineUsers.filter(u => u.user_id !== myUserId);
         if (candidates.length > 0) {
@@ -492,13 +520,7 @@
           room.send({
             type: 'broadcast',
             event: 'match_invite',
-            payload: {
-              targetId: matched.user_id,
-              fromId: myUserId,
-              fromName: myUserName,
-              fromAvatar: myAvatar,
-              fromGender: myGender
-            }
+            payload: { targetId: matched.user_id, fromId: myUserId, fromName: myUserName, fromAvatar: myAvatar, fromGender: myGender }
           });
 
           triggerMatchSuccess({ id: matched.user_id, name: matched.username, avatar: matched.avatar, gender: matched.gender });
@@ -506,10 +528,7 @@
       }, 1000);
     }
 
-    function cancelMatchingQueue() {
-      if (matchingInterval) clearInterval(matchingInterval);
-      switchView('view-dashboard');
-    }
+    function cancelMatchingQueue() { if (matchingInterval) clearInterval(matchingInterval); switchView('view-dashboard'); }
 
     function triggerMatchSuccess(partner) {
       currentPartner = partner;
@@ -526,26 +545,26 @@
 
     function initiateCall(isVideo) {
       closeCallTypeModal();
-      document.getElementById('calling-target-name').innerText = `${currentPartner.name} を呼び出しています...`;
-      document.getElementById('modal-calling').style.display = 'flex';
+      document.getElementById('calling-target-name').innerText = currentPartner.name;
+      document.getElementById('calling-avatar-box').innerHTML = renderAvatarHTML(currentPartner.avatar, '90px');
+      document.getElementById('screen-calling').style.display = 'flex';
+      playRingtone('outbound');
 
       room.send({
         type: 'broadcast',
         event: 'call_request',
-        payload: {
-          targetId: currentPartner.id,
-          callerId: myUserId,
-          callerName: myUserName,
-          callerAvatar: myAvatar,
-          isVideo: isVideo
-        }
+        payload: { targetId: currentPartner.id, callerId: myUserId, callerName: myUserName, callerAvatar: myAvatar, isVideo: isVideo }
       });
     }
 
-    function cancelCall() { document.getElementById('modal-calling').style.display = 'none'; }
+    function cancelCall() {
+      stopRingtone();
+      document.getElementById('screen-calling').style.display = 'none';
+    }
 
     function acceptIncomingCall() {
-      document.getElementById('modal-incoming').style.display = 'none';
+      stopRingtone();
+      document.getElementById('screen-incoming').style.display = 'none';
       if (!pendingCallData) return;
 
       room.send({
@@ -558,7 +577,8 @@
     }
 
     function rejectIncomingCall() {
-      document.getElementById('modal-incoming').style.display = 'none';
+      stopRingtone();
+      document.getElementById('screen-incoming').style.display = 'none';
       if (!pendingCallData) return;
 
       room.send({
@@ -569,8 +589,8 @@
     }
 
     async function startRtcConnection(isVideo, isOffer) {
-      document.getElementById('call-active-window').style.display = 'flex';
-      document.getElementById('call-status-label').innerText = isVideo ? '📹 ビデオ通話中' : '🎙️ 音声通話中';
+      document.getElementById('screen-active-call').style.display = 'flex';
+      document.getElementById('call-active-status').innerText = isVideo ? '📹 ビデオ通話中' : '🎙️ 音声通話中';
       
       createPeerConnection();
 
@@ -611,9 +631,10 @@
     }
 
     function endCall() {
+      stopRingtone();
       if (peerConnection) { peerConnection.close(); peerConnection = null; }
       if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-      document.getElementById('call-active-window').style.display = 'none';
+      document.getElementById('screen-active-call').style.display = 'none';
     }
 
     function openDirectChat() {
