@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CONNECT-X | コミュニティダッシュボード</title>
+  <title>CONNECT-X | リアルタイムコミュニティ</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #0b0f19;
       --bg-card: #151c2c;
-      --bg-card-hover: #1e293b;
       --border-color: rgba(255, 255, 255, 0.08);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
@@ -18,636 +18,234 @@
       --accent-grad: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Noto Sans JP', sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* --------------------------------------------------
-       ヘッダー
-    -------------------------------------------------- */
     header {
-      height: 64px;
-      background: rgba(21, 28, 44, 0.8);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      z-index: 100;
+      height: 64px; background: rgba(21, 28, 44, 0.8); border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
     }
+    .logo { font-size: 20px; font-weight: 900; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .online-badge { font-size: 13px; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      background: var(--accent-grad);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .search-bar {
-      position: relative;
-      width: 280px;
-    }
-
-    .search-bar input {
-      width: 100%;
-      padding: 8px 16px 8px 36px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      color: var(--text-main);
-      font-size: 13px;
-      outline: none;
-      transition: all 0.2s;
-    }
-
-    .search-bar input:focus {
-      border-color: var(--accent-blue);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .search-bar::before {
-      content: "🔍";
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 12px;
-      opacity: 0.6;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .online-badge {
-      font-size: 13px;
-      color: var(--accent-green);
-      background: rgba(16, 185, 129, 0.1);
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      font-weight: 500;
-    }
-
-    .auth-btns {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn-login, .btn-register {
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-login {
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-    }
-
-    .btn-login:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .btn-register {
-      background: var(--accent-grad);
-      border: none;
-      color: #fff;
-    }
-
-    .btn-register:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    /* --------------------------------------------------
-       メインレイアウト (2列 + 下部)
-    -------------------------------------------------- */
     .dashboard-container {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      grid-template-rows: 1fr 220px;
-      gap: 16px;
-      padding: 16px 24px;
-      height: calc(100vh - 64px);
-      box-sizing: border-box;
+      flex: 1; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: 1fr 220px;
+      gap: 16px; padding: 16px 24px; height: calc(100vh - 64px);
     }
 
-    /* 1. 左側エリア（メイン表示部）：詳細情報の表示 */
-    .main-profile-area {
-      grid-column: 1 / 2;
-      grid-row: 1 / 2;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 24px;
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-      overflow-y: auto;
+    /* メインエリア */
+    .main-area {
+      grid-column: 1 / 2; grid-row: 1 / 2; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 16px; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center;
     }
+    .btn-main { padding: 14px 28px; background: var(--accent-grad); border: none; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
 
-    .profile-photo-container {
-      position: relative;
-      flex-shrink: 0;
+    /* サイドバー：マッチング待機リスト */
+    .sidebar-area {
+      grid-column: 2 / 3; grid-row: 1 / 3; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;
     }
+    .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border-color); }
+    .category-tabs { display: flex; background: var(--bg-dark); padding: 4px; border-radius: 8px; gap: 4px; margin-top: 8px; }
+    .tab-btn { flex: 1; padding: 6px 0; background: transparent; border: none; color: var(--text-sub); font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+    .tab-btn.active { background: #1e293b; color: var(--text-main); }
+    
+    .user-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); }
 
-    .profile-photo {
-      width: 160px;
-      height: 160px;
-      border-radius: 16px;
-      object-fit: cover;
-      border: 2px solid var(--border-color);
-    }
-
-    .status-indicator {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: var(--accent-green);
-      color: #000;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
-
-    .profile-details {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .user-name-title {
-      font-size: 24px;
-      font-weight: 700;
-    }
-
-    .user-bio {
-      font-size: 14px;
-      color: var(--text-sub);
-      line-height: 1.6;
-    }
-
-    .tags-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .tag-item {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
-    .btn-start-chat {
-      margin-top: 8px;
-      align-self: flex-start;
-      padding: 12px 28px;
-      background: var(--accent-grad);
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
-      transition: transform 0.2s;
-    }
-
-    .btn-start-chat:hover {
-      transform: translateY(-2px);
-    }
-
-    /* 2. 右側エリア：オンラインユーザーリスト */
-    .sidebar-online-area {
-      grid-column: 2 / 3;
-      grid-row: 1 / 3;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .sidebar-header {
-      padding: 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .sidebar-title {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    /* カテゴリ切り替えタブ（女性/男性） */
-    .category-tabs {
-      display: flex;
-      background: var(--bg-dark);
-      padding: 4px;
-      border-radius: 8px;
-      gap: 4px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 6px 0;
-      background: transparent;
-      border: none;
-      color: var(--text-sub);
-      font-size: 12px;
-      font-weight: 700;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      background: var(--bg-card-hover);
-      color: var(--text-main);
-    }
-
-    .user-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .user-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.02);
-      transition: background 0.2s;
-    }
-
-    .user-item:hover {
-      background: var(--bg-card-hover);
-    }
-
-    .user-info-short {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .avatar-wrapper {
-      position: relative;
-    }
-
-    .avatar-mini {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .online-dot {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 10px;
-      height: 10px;
-      background: var(--accent-green);
-      border: 2px solid var(--bg-card);
-      border-radius: 50%;
-    }
-
-    .user-name-short {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .btn-view-profile {
-      padding: 4px 10px;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-sub);
-      font-size: 11px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .btn-view-profile:hover {
-      border-color: var(--accent-blue);
-      color: var(--accent-blue);
-    }
-
-    /* 3. 下部エリア：グループチャット・スレッド */
+    /* 下部：スレッドエリア */
     .threads-area {
-      grid-column: 1 / 2;
-      grid-row: 2 / 3;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow: hidden;
+      grid-column: 1 / 2; grid-row: 2 / 3; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;
     }
-
-    .threads-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .threads-title {
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .threads-scroll-container {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-    }
-
-    .thread-card {
-      min-width: 180px;
-      background: var(--bg-dark);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex-shrink: 0;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .thread-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .thread-icon {
-      font-size: 24px;
-    }
-
-    .thread-name {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .thread-tags {
-      display: flex;
-      gap: 4px;
-    }
-
-    .thread-tag {
-      font-size: 10px;
-      color: var(--accent-blue);
-      background: rgba(0, 242, 254, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .btn-create-thread {
-      min-width: 100px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 2px dashed var(--border-color);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      color: var(--text-sub);
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.2s;
-    }
-
-    .btn-create-thread:hover {
-      border-color: var(--accent-blue);
-      color: var(--accent-blue);
-    }
-
-    .plus-icon {
-      font-size: 20px;
-      font-weight: bold;
-    }
+    .threads-scroll-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+    .thread-card { min-width: 180px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; flex-shrink: 0; }
+    .btn-create-thread { min-width: 100px; background: rgba(255, 255, 255, 0.03); border: 2px dashed var(--border-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text-sub); cursor: pointer; flex-shrink: 0; }
   </style>
 </head>
 <body>
 
-  <!-- ヘッダー -->
   <header>
-    <div class="header-left">
-      <div class="logo">CONNECT-X</div>
-      <div class="search-bar">
-        <input type="text" placeholder="ユーザーやスレッドを検索...">
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="online-badge">🟢 3,241人 オンライン</div>
-      <div class="auth-btns">
-        <button class="btn-login">ログイン</button>
-        <button class="btn-register">新規登録</button>
-      </div>
-    </div>
+    <div class="logo">CONNECT-X</div>
+    <div class="online-badge" id="onlineCount">🟢 0人 オンライン</div>
   </header>
 
-  <!-- ダッシュボード メインエリア -->
   <div class="dashboard-container">
-
-    <!-- 1. 【左側エリア】詳細情報の表示 -->
-    <section class="main-profile-area">
-      <div class="profile-photo-container">
-        <img class="profile-photo" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="プロフィール写真">
-        <div class="status-indicator">Active</div>
-      </div>
-      <div class="profile-details">
-        <h1 class="user-name-title">Kenji S. (25)</h1>
-        <p class="user-bio">
-          都内でWebデザイナーをしています。週末はカフェ巡りや映画鑑賞、たまに写真撮影ドライブに行きます！同じ趣味の人と気軽に話せたら嬉しいです。よろしくお願いします！
-        </p>
-        <div class="tags-container">
-          <span class="tag-item"># Webデザイン</span>
-          <span class="tag-item"># カフェ巡り</span>
-          <span class="tag-item"># 映画鑑賞</span>
-          <span class="tag-item"># 写真</span>
-          <span class="tag-item"># ドライブ</span>
-        </div>
-        <button class="btn-start-chat">💬 個別チャットを開始</button>
-      </div>
+    <!-- メイン操作部 -->
+    <section class="main-area">
+      <h2 id="myStatusText">1対1のマッチングを開始しますか？</h2>
+      <button class="btn-main" id="matchToggleBtn" onclick="toggleMatching()">🤝 1対1を探す</button>
     </section>
 
-    <!-- 2. 【右側エリア】オンラインユーザーリスト -->
-    <aside class="sidebar-online-area">
+    <!-- 待機中ユーザーリスト -->
+    <aside class="sidebar-area">
       <div class="sidebar-header">
-        <div class="sidebar-title">現在オンライン中</div>
-        <!-- カテゴリ切り替えタブ -->
+        <div style="font-weight: bold; font-size: 14px;">マッチ待機中のユーザー</div>
         <div class="category-tabs">
-          <button class="tab-btn active" onclick="switchCategory('all')">すべて</button>
-          <button class="tab-btn" onclick="switchCategory('female')">女性</button>
-          <button class="tab-btn" onclick="switchCategory('male')">男性</button>
+          <button class="tab-btn active" onclick="filterGender('all')">すべて</button>
+          <button class="tab-btn" onclick="filterGender('女性')">女性</button>
+          <button class="tab-btn" onclick="filterGender('男性')">男性</button>
         </div>
       </div>
-
-      <div class="user-list">
-        <!-- ユーザー項目 -->
-        <div class="user-item">
-          <div class="user-info-short">
-            <div class="avatar-wrapper">
-              <img class="avatar-mini" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="アイコン">
-              <div class="online-dot"></div>
-            </div>
-            <span class="user-name-short">Haruka M.</span>
-          </div>
-          <button class="btn-view-profile">見る</button>
-        </div>
-
-        <div class="user-item">
-          <div class="user-info-short">
-            <div class="avatar-wrapper">
-              <img class="avatar-mini" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="アイコン">
-              <div class="online-dot"></div>
-            </div>
-            <span class="user-name-short">Yuuki T.</span>
-          </div>
-          <button class="btn-view-profile">見る</button>
-        </div>
-
-        <div class="user-item">
-          <div class="user-info-short">
-            <div class="avatar-wrapper">
-              <img class="avatar-mini" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=100&q=80" alt="アイコン">
-              <div class="online-dot"></div>
-            </div>
-            <span class="user-name-short">Aoi K.</span>
-          </div>
-          <button class="btn-view-profile">見る</button>
-        </div>
-
-        <div class="user-item">
-          <div class="user-info-short">
-            <div class="avatar-wrapper">
-              <img class="avatar-mini" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="アイコン">
-              <div class="online-dot"></div>
-            </div>
-            <span class="user-name-short">Ren S.</span>
-          </div>
-          <button class="btn-view-profile">見る</button>
-        </div>
+      <div class="user-list" id="waitingUserList">
+        <!-- リアルタイムで追加・削除される -->
       </div>
     </aside>
 
-    <!-- 3. 【下部エリア】グループチャット・スレッド -->
+    <!-- グループスレッド -->
     <section class="threads-area">
-      <div class="threads-header">
-        <div class="threads-title">人気・おすすめのグループチャット</div>
-      </div>
-      <div class="threads-scroll-container">
-
-        <!-- 新規スレッド作成ボタン -->
-        <button class="btn-create-thread">
-          <span class="plus-icon">＋</span>
-          <span style="font-size: 11px; font-weight: 700;">新規スレッド</span>
-        </button>
-
-        <!-- スレッドカード -->
-        <div class="thread-card">
-          <div class="thread-icon">🎬</div>
-          <div class="thread-name"># 映画ファン</div>
-          <div class="thread-tags">
-            <span class="thread-tag">映画</span>
-            <span class="thread-tag">最新作</span>
-          </div>
-        </div>
-
-        <div class="thread-card">
-          <div class="thread-icon">💻</div>
-          <div class="thread-name"># プログラミング</div>
-          <div class="thread-tags">
-            <span class="thread-tag">開発</span>
-            <span class="thread-tag">Web</span>
-          </div>
-        </div>
-
-        <div class="thread-card">
-          <div class="thread-icon">🎧</div>
-          <div class="thread-name"># 音楽好き</div>
-          <div class="thread-tags">
-            <span class="thread-tag">邦ロック</span>
-            <span class="thread-tag">ライブ</span>
-          </div>
-        </div>
-
-        <div class="thread-card">
-          <div class="thread-icon">🎮</div>
-          <div class="thread-name"># ゲーム部屋</div>
-          <div class="thread-tags">
-            <span class="thread-tag">FPS</span>
-            <span class="thread-tag">Steam</span>
-          </div>
-        </div>
-
-        <div class="thread-card">
-          <div class="thread-icon">🍜</div>
-          <div class="thread-name"># グルメ巡り</div>
-          <div class="thread-tags">
-            <span class="thread-tag">ラーメン</span>
-            <span class="thread-tag">カフェ</span>
-          </div>
-        </div>
-
+      <div style="font-weight: bold; font-size: 14px;">アクティブなスレッド</div>
+      <div class="threads-scroll-container" id="threadList">
+        <button class="btn-create-thread" onclick="createNewThread()">＋ 新規スレッド</button>
       </div>
     </section>
-
   </div>
 
   <script>
-    // タブ切替の簡易インタラクション
-    function switchCategory(category) {
-      const tabs = document.querySelectorAll('.tab-btn');
-      tabs.forEach(tab => tab.classList.remove('active'));
-      event.target.classList.add('active');
+    const SUPABASE_URL = "https://yssmhumtrdihpketcuux.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const myId = 'usr_' + Math.random().toString(36).substring(2, 7);
+    const myGender = Math.random() > 0.5 ? '男性' : '女性';
+    const myName = `ユーザー_${myId.substr(-4)}`;
+    
+    let isMatching = false;
+    let globalChannel = null;
+    let currentFilter = 'all';
+
+    // 1. 全体接続とオンライン人数・待機リスト管理
+    function initSystem() {
+      globalChannel = supabaseClient.channel('global_lobby', { config: { presence: { key: myId } } });
+
+      globalChannel.on('presence', { event: 'sync' }, () => {
+        const state = globalChannel.presenceState();
+        const allUsers = Object.values(state).flat();
+        
+        // 全体のオンライン人数を更新
+        document.getElementById('onlineCount').innerText = `🟢 ${allUsers.length}人 オンライン`;
+
+        // マッチング待機中のユーザーのみをリストアップ
+        const waitingUsers = allUsers.filter(u => u.isWaiting && u.id !== myId);
+        renderWaitingUsers(waitingUsers);
+
+        // マッチングの自動判定（自分が待機中で、他に待機者がいる場合）
+        if (isMatching && waitingUsers.length > 0) {
+          const partner = waitingUsers[0];
+          alert(`${partner.name} (${partner.gender}) さんとマッチしました！`);
+          stopMatching();
+        }
+      }).subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await globalChannel.track({ id: myId, name: myName, gender: myGender, isWaiting: false });
+        }
+      });
+
+      loadThreads();
+      subscribeThreads();
     }
+
+    // 2. マッチング待機トグル
+    async function toggleMatching() {
+      isMatching = !isMatching;
+      const btn = document.getElementById('matchToggleBtn');
+      const text = document.getElementById('myStatusText');
+
+      if (isMatching) {
+        btn.innerText = "✖ 待機をキャンセル";
+        btn.style.background = "#ef4444";
+        text.innerText = "相手を探しています...";
+      } else {
+        stopMatching();
+      }
+
+      await globalChannel.track({ id: myId, name: myName, gender: myGender, isWaiting: isMatching });
+    }
+
+    function stopMatching() {
+      isMatching = false;
+      const btn = document.getElementById('matchToggleBtn');
+      const text = document.getElementById('myStatusText');
+      btn.innerText = "🤝 1対1を探す";
+      btn.style.background = "var(--accent-grad)";
+      text.innerText = "1対1のマッチングを開始しますか？";
+    }
+
+    // 3. 待機中ユーザーリストの描写
+    function renderWaitingUsers(users) {
+      const listEl = document.getElementById('waitingUserList');
+      listEl.innerHTML = '';
+
+      const filtered = users.filter(u => currentFilter === 'all' || u.gender === currentFilter);
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div style="color:var(--text-sub); font-size:12px; text-align:center; padding:20px;">待機中のユーザーはいません</div>`;
+        return;
+      }
+
+      filtered.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'user-item';
+        item.innerHTML = `
+          <div>
+            <div style="font-weight:bold; font-size:13px;">${u.name}</div>
+            <div style="font-size:10px; color:var(--text-sub);">${u.gender}</div>
+          </div>
+          <span style="font-size:10px; color:var(--accent-green);">待機中</span>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    function filterGender(gender) {
+      currentFilter = gender;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      const state = globalChannel.presenceState();
+      const waitingUsers = Object.values(state).flat().filter(u => u.isWaiting && u.id !== myId);
+      renderWaitingUsers(waitingUsers);
+    }
+
+    // 4. スレッド機能（DB連携）
+    async function loadThreads() {
+      const { data } = await supabaseClient.from('threads').select('*').order('id', { ascending: false });
+      if (data) {
+        const container = document.getElementById('threadList');
+        container.innerHTML = `<button class="btn-create-thread" onclick="createNewThread()">＋ 新規スレッド</button>`;
+        data.forEach(renderThreadCard);
+      }
+    }
+
+    function renderThreadCard(t) {
+      const container = document.getElementById('threadList');
+      const card = document.createElement('div');
+      card.className = 'thread-card';
+      card.innerHTML = `
+        <div style="font-size:20px;">💬</div>
+        <div style="font-weight:bold; font-size:13px; margin-top:4px;">${t.title}</div>
+        <div style="font-size:10px; color:var(--accent-blue); margin-top:4px;">${t.tags ? t.tags.join(' ') : ''}</div>
+      `;
+      container.appendChild(card);
+    }
+
+    async function createNewThread() {
+      const title = prompt("スレッドのタイトルを入力してください:");
+      if (!title) return;
+      const tagInput = prompt("タグをカンマ区切りで入力（例: アニメ,雑談）:");
+      const tags = tagInput ? tagInput.split(',').map(t => `#${t.trim()}`) : [];
+
+      await supabaseClient.from('threads').insert([{ title, tags }]);
+    }
+
+    function subscribeThreads() {
+      supabaseClient.channel('public:threads')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'threads' }, payload => {
+          loadThreads();
+        }).subscribe();
+    }
+
+    window.onload = initSystem;
   </script>
 </body>
 </html>
