@@ -82,13 +82,13 @@
 
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; flex: 1; }
     .chat-header { padding: 12px 16px; border-bottom: 1px solid var(--panel-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); }
-    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; position: relative; }
 
     .message-item { display: flex; flex-direction: column; max-width: 75%; gap: 4px; position: relative; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
     .message-item.system { align-self: center; align-items: center; max-width: 100%; margin: 6px 0; }
     
-    .message-bubble-wrapper { display: flex; align-items: center; gap: 6px; }
+    .message-bubble-wrapper { display: flex; align-items: flex-end; gap: 6px; }
     .message-item.self .message-bubble-wrapper { flex-direction: row-reverse; }
 
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 10px 14px; border-radius: 12px; font-size: 13px; word-break: break-all; }
@@ -96,10 +96,15 @@
     .message-item.system .message-bubble { background: var(--input-bg); border: none; color: var(--text-secondary); font-size: 11px; padding: 4px 12px; border-radius: 20px; }
     .message-item.deleted .message-bubble { background: rgba(255,255,255,0.05); color: var(--text-muted); font-style: italic; border: 1px dashed var(--panel-border); }
 
+    .message-status-meta { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .message-item.self .message-status-meta { justify-content: flex-end; }
+
     .btn-unsend { font-size: 10px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
     .btn-unsend:hover { color: var(--danger-color); text-decoration: underline; }
 
     .chat-media-preview { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 4px; object-fit: cover; }
+
+    .typing-indicator-box { padding: 4px 16px; font-size: 11px; color: var(--text-secondary); font-style: italic; min-height: 20px; display: flex; align-items: center; gap: 6px; background: var(--header-bg); }
 
     .chat-input-area { padding: 12px 16px; border-top: 1px solid var(--panel-border); display: flex; gap: 8px; align-items: center; background: var(--header-bg); }
     .chat-input { flex: 1; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; font-size: 15px; }
@@ -144,7 +149,6 @@
 
   <div id="canvas-container"></div>
 
-  <!-- 1. 初期プロフィール設定モーダル -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
       <div style="font-size:16px; font-weight:700; text-align:center;">プロフィール設定</div>
@@ -182,7 +186,6 @@
     </div>
   </div>
 
-  <!-- 2. チャット申請送信中モーダル（スピナー付き） -->
   <div id="modal-requesting" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; gap:16px;">
       <div style="font-size:15px; font-weight:700;">マッチング中・応答待機中</div>
@@ -194,7 +197,6 @@
     </div>
   </div>
 
-  <!-- 3. チャット申請受信モーダル -->
   <div id="modal-incoming-request" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; gap:16px;">
       <div style="font-size:15px; font-weight:700;">チャットのリクエストが届きました</div>
@@ -210,7 +212,6 @@
     </div>
   </div>
 
-  <!-- 4. 利用規約・ポリシー確認用モーダル -->
   <div id="modal-info-policy" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
       <div id="info-modal-title" style="font-size:16px; font-weight:700; text-align:center;">利用規約</div>
@@ -219,7 +220,6 @@
     </div>
   </div>
 
-  <!-- 5. 通話関連モーダル -->
   <div id="modal-call-status" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; width:520px;">
       <div id="call-status-title" style="font-size:16px; font-weight:700;">通話中</div>
@@ -253,11 +253,10 @@
     </div>
   </div>
 
-  <!-- メインレイアウト -->
   <div class="app-container">
     <header>
       <div>
-        <span class="brand-title">HIMA-LAB</span>
+        <span class="brand-title" id="brand-title-text">HIMA-LAB</span>
         <span class="brand-sub">Realtime Community</span>
       </div>
       <div class="header-actions">
@@ -268,7 +267,6 @@
       </div>
     </header>
 
-    <!-- ダッシュボード -->
     <div id="view-dashboard" class="view-section active">
       <section class="viewport-panel">
         <h2 style="font-size:18px;">オンラインユーザーを選択してチャット開始</h2>
@@ -289,7 +287,6 @@
       </aside>
     </div>
 
-    <!-- チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header">
@@ -306,10 +303,14 @@
           <div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>
         </div>
 
+        <div class="typing-indicator-box" id="typing-indicator-box" style="display:none;">
+          <span id="typing-indicator-text">相手が入力中...</span>
+        </div>
+
         <div class="chat-input-area">
           <label for="media-upload-input" class="btn-action-secondary" style="padding:8px 12px; font-size:14px; cursor:pointer;" title="画像・動画を送信">📷/🎥</label>
           <input type="file" id="media-upload-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaUpload(event)">
-          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." oninput="handleTypingInput()" onkeypress="if(event.key==='Enter') sendMessage()">
           <button class="btn-action-primary" style="padding:10px 14px;" onclick="sendMessage()">送信</button>
         </div>
       </div>
@@ -320,7 +321,6 @@
       </aside>
     </div>
 
-    <!-- フッター領域 -->
     <footer>
       <a onclick="openInfoModal('terms')">利用規約</a>
       <span class="sep">|</span>
@@ -350,17 +350,39 @@
     let myBio = '';
 
     let onlineUsers = [];
-    let activeChatUserIds = []; // チャット中のユーザーID一覧
+    let activeChatUserIds = [];
     let selectedTargetUser = null;
     let currentPartner = null;
     let pendingIncomingReq = null;
     let blockedUsers = JSON.parse(localStorage.getItem('hima_blocked_users') || '[]');
+
+    let unreadCount = 0;
+    let typingTimer = null;
+    let isTypingSent = false;
 
     let peerConnection = null;
     let localStream = null;
     let isVideoCallMode = false;
     let pendingCallSignal = null;
     const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    // 効果音再生用 (Web Audio API)
+    function playNotificationSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } catch (e) {}
+    }
 
     function blockUser(targetUserId, targetUserName) {
       if (!confirm(`${targetUserName} をブロックしますか？\n（相手に通知が届くことはありません）`)) return;
@@ -497,7 +519,6 @@
         renderSidebarUsers();
       });
 
-      // 他のユーザーのチャット中ステータスを受信
       room.on('broadcast', { event: 'update_active_status' }, (payload) => {
         const data = payload.payload;
         if (data.inChat) {
@@ -516,6 +537,7 @@
           document.getElementById('incoming-req-name').innerText = data.fromName;
           document.getElementById('incoming-req-bio').innerText = data.fromBio || '（自己紹介未設定）';
           document.getElementById('modal-incoming-request').style.display = 'flex';
+          playNotificationSound();
         }
       });
 
@@ -549,6 +571,40 @@
         if (blockedUsers.includes(data.senderId)) return;
         if (currentPartner && (data.senderId === myUserId || data.senderId === currentPartner.id)) {
           appendMessage(data);
+          
+          // 相手からのメッセージであれば、自動既読を送信
+          if (data.senderId === currentPartner.id) {
+            playNotificationSound();
+            sendReadReceipt(data.msgId);
+          }
+        } else if (!currentPartner && data.senderId !== myUserId) {
+          // チャット画面外でメッセージを受信した場合の未読バッジ＆通知
+          unreadCount++;
+          document.getElementById('brand-title-text').innerText = `HIMA-LAB (${unreadCount})`;
+          playNotificationSound();
+        }
+      });
+
+      // 既読シグナルの受信
+      room.on('broadcast', { event: 'chat_read' }, (payload) => {
+        const data = payload.payload;
+        if (currentPartner && data.readerId === currentPartner.id) {
+          markMessageAsRead(data.msgId);
+        }
+      });
+
+      // 入力中シグナルの受信
+      room.on('broadcast', { event: 'typing_status' }, (payload) => {
+        const data = payload.payload;
+        if (currentPartner && data.senderId === currentPartner.id) {
+          const indicatorBox = document.getElementById('typing-indicator-box');
+          const indicatorText = document.getElementById('typing-indicator-text');
+          if (data.isTyping) {
+            indicatorText.innerText = `${currentPartner.name}さんが入力中...`;
+            indicatorBox.style.display = 'flex';
+          } else {
+            indicatorBox.style.display = 'none';
+          }
         }
       });
 
@@ -558,8 +614,8 @@
         if (targetMsg) {
           targetMsg.classList.add('deleted');
           targetMsg.querySelector('.message-bubble').innerText = '送信が取り消されたメッセージです';
-          const unsendBtn = targetMsg.querySelector('.btn-unsend');
-          if (unsendBtn) unsendBtn.remove();
+          const metaDiv = targetMsg.querySelector('.message-status-meta');
+          if (metaDiv) metaDiv.remove();
         }
       });
 
@@ -574,6 +630,7 @@
           document.getElementById('call-controls').style.display = 'none';
           document.getElementById('call-incoming-actions').style.display = 'flex';
           document.getElementById('modal-call-status').style.display = 'flex';
+          playNotificationSound();
         } else if (data.signalType === 'call-response') {
           if (data.accepted) {
             document.getElementById('call-status-title').innerText = `${currentPartner.name} と通話中`;
@@ -604,7 +661,6 @@
       });
     }
 
-    // 自分のチャット中ステータスを他に通知
     function broadcastActiveStatus() {
       if (!room) return;
       room.send({
@@ -618,14 +674,10 @@
       const sidebar = document.getElementById('sidebar-users');
       if (!sidebar) return;
 
-      // 条件エンフォースメント：
-      // 1. 自分自身 (isSelf) は絶対に表示しない
-      // 2. 同一端末 (isSameDevice) は表示しない
-      // 3. すでに他の人とチャット中 (isInChat) のユーザーはマッチ待ちから非表示にする
       const filteredUsers = onlineUsers.filter(u => {
         if (u.user_id === myUserId) return false;
-        if (u.device_id === myDeviceId) return false; // 同一端末は表示させない
-        if (activeChatUserIds.includes(u.user_id)) return false; // チャット中の人は非表示
+        if (u.device_id === myDeviceId) return false;
+        if (activeChatUserIds.includes(u.user_id)) return false;
         return true;
       });
 
@@ -727,9 +779,12 @@
     }
 
     function openDirectChat() {
-      broadcastActiveStatus(); // チャット開始を周囲に通知してマッチ待ちから消す
+      broadcastActiveStatus();
+      unreadCount = 0;
+      document.getElementById('brand-title-text').innerText = 'HIMA-LAB';
       document.getElementById('chat-title').innerText = `${currentPartner.name} とのチャット`;
       document.getElementById('chat-messages').innerHTML = '<div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>';
+      document.getElementById('typing-indicator-box').style.display = 'none';
       document.getElementById('chat-partner-info').innerHTML = `
         <div style="text-align:center; padding:16px 0; display:flex; flex-direction:column; align-items:center; gap:8px;">
           ${renderAvatarHTML(currentPartner.avatar, '60px')}
@@ -753,8 +808,30 @@
       }
       endCall(false);
       currentPartner = null;
-      broadcastActiveStatus(); // 退室したら再びマッチ待ち一覧に復活
+      broadcastActiveStatus();
       switchView('view-dashboard');
+    }
+
+    // 入力中イベントの送信処理
+    function handleTypingInput() {
+      if (!currentPartner || !room) return;
+      if (!isTypingSent) {
+        isTypingSent = true;
+        room.send({
+          type: 'broadcast',
+          event: 'typing_status',
+          payload: { senderId: myUserId, targetId: currentPartner.id, isTyping: true }
+        });
+      }
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        isTypingSent = false;
+        room.send({
+          type: 'broadcast',
+          event: 'typing_status',
+          payload: { senderId: myUserId, targetId: currentPartner.id, isTyping: false }
+        });
+      }, 1500);
     }
 
     function sendMessage() {
@@ -762,7 +839,16 @@
       const text = input.value.trim();
       if (!text) return;
 
-      const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+      if (isTypingSent && currentPartner) {
+        isTypingSent = false;
+        room.send({
+          type: 'broadcast',
+          event: 'typing_status',
+          payload: { senderId: myUserId, targetId: currentPartner.id, isTyping: false }
+        });
+      }
+
+      const msgId = 'msg_' + Date.now + '_' + Math.random().toString(36).substr(2, 5);
       room.send({
         type: 'broadcast',
         event: 'chat_message',
@@ -795,6 +881,25 @@
       e.target.value = '';
     }
 
+    function sendReadReceipt(msgId) {
+      if (!currentPartner || !room) return;
+      room.send({
+        type: 'broadcast',
+        event: 'chat_read',
+        payload: { msgId: msgId, readerId: myUserId, targetId: currentPartner.id }
+      });
+    }
+
+    function markMessageAsRead(msgId) {
+      const targetMsg = document.getElementById(`msg-${msgId}`);
+      if (targetMsg) {
+        const metaDiv = targetMsg.querySelector('.message-status-meta');
+        if (metaDiv && !metaDiv.innerText.includes('既読')) {
+          metaDiv.innerHTML = `<span>既読</span>`;
+        }
+      }
+    }
+
     function appendMessage(data) {
       const container = document.getElementById('chat-messages');
       const msgDiv = document.createElement('div');
@@ -813,12 +918,14 @@
       }
 
       const unsendBtnHTML = isSelf ? `<button class="btn-unsend" onclick="unsendMessage('${data.msgId}')">取り消し</button>` : '';
+      const statusMetaHTML = isSelf ? `<div class="message-status-meta"><span>送信済</span></div>` : '';
 
       msgDiv.innerHTML = `
         <div class="message-bubble-wrapper">
           <div class="message-bubble">${content}</div>
           ${unsendBtnHTML}
         </div>
+        ${statusMetaHTML}
       `;
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
