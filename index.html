@@ -40,10 +40,6 @@
     .online-counter { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); padding: 6px 14px; border-radius: 20px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--online-indicator); box-shadow: 0 0 8px var(--online-indicator); }
 
-    .btn-auth { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-    .btn-auth:hover { background: rgba(255, 255, 255, 0.05); }
-    .btn-auth.primary { background: var(--text-primary); color: var(--bg-base); border: none; font-weight: 600; }
-
     /* 全ビュー共通スタイル */
     .view-section { display: none !important; width: 100%; height: calc(100vh - 64px); overflow: hidden; }
 
@@ -61,7 +57,7 @@
     .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px 20px; }
 
     .user-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--panel-border); border-radius: 8px; }
-    .user-item-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .user-item-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 16px; }
     .user-item-name { font-size: 13px; font-weight: 500; }
     .user-status-tag { margin-left: auto; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); color: var(--text-muted); }
     .user-status-tag.matching { background: rgba(37, 99, 235, 0.2); color: #60a5fa; }
@@ -73,26 +69,34 @@
     /* マッチ成立画面スタイル */
     .match-cards { display: flex; gap: 32px; align-items: center; }
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
-    .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+    .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
 
     /* チャット画面スタイル */
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; }
-    .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; flex-shrink: 0; }
+    .chat-header { padding: 12px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
     
     .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 16px; }
     .chat-messages-inner { display: flex; flex-direction: column; gap: 16px; }
 
-    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; position: relative; group: hover; }
+    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; position: relative; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
+    .message-item.system { align-self: center; align-items: center; max-width: 100%; margin: 8px 0; }
     .message-sender { font-size: 11px; color: var(--text-muted); }
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; word-break: break-all; }
     .message-item.self .message-bubble { background: var(--accent-color); border: none; }
+    .message-item.system .message-bubble { background: rgba(255, 255, 255, 0.05); border: none; color: var(--text-secondary); font-size: 12px; padding: 6px 16px; border-radius: 20px; }
     
     .chat-media-attachment { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 4px; border: 1px solid var(--panel-border); display: block; object-fit: contain; }
 
-    /* 取り消しボタン */
-    .btn-unsend { font-size: 10px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; margin-top: 2px; text-decoration: underline; transition: color 0.2s; }
-    .btn-unsend:hover { color: var(--danger-color); }
+    .message-actions { display: flex; gap: 8px; }
+    .btn-action-link { font-size: 10px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; text-decoration: underline; margin-top: 2px; }
+    .btn-action-link:hover { color: var(--text-primary); }
+    .btn-action-link.danger:hover { color: var(--danger-color); }
+
+    /* 通話ウィンドウ（オーバーレイ） */
+    .call-overlay { display: none; position: absolute; top: 70px; right: 300px; width: 280px; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; z-index: 10; flex-direction: column; gap: 8px; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .call-videos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 100px; }
+    .call-video-box { background: #000; border-radius: 6px; overflow: hidden; width: 100%; height: 100%; object-fit: cover; }
 
     /* プレビュー表示エリア */
     .media-preview-area { display: none; padding: 12px 24px 0 24px; background: rgba(6, 8, 13, 0.95); flex-shrink: 0; }
@@ -111,11 +115,96 @@
     .btn-action-primary:hover { background: var(--accent-hover); }
     .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-action-secondary:hover { background: rgba(255, 255, 255, 0.05); }
+    .btn-action-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); color: #fca5a5; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .btn-action-danger:hover { background: var(--danger-color); color: #fff; }
+
+    /* モーダルダイアログ (初回登録・通報用) */
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-card { background: #0f1520; border: 1px solid var(--panel-border); border-radius: 16px; padding: 32px; width: 400px; max-width: 90%; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .modal-title { font-size: 18px; font-weight: 700; text-align: center; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .form-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+    .form-input, .form-select { background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); outline: none; }
+    .avatar-selector { display: flex; gap: 12px; justify-content: center; }
+    .avatar-option { font-size: 24px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); }
+    .avatar-option.selected { border-color: var(--accent-color); background: rgba(37,99,235,0.2); }
+    .terms-box { height: 100px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
   </style>
 </head>
 <body>
 
   <div id="canvas-container"></div>
+
+  <!-- 初回登録モーダル -->
+  <div id="modal-profile" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-title">初期プロフィール設定</div>
+      
+      <div class="form-group">
+        <label class="form-label">アイコン選択</label>
+        <div class="avatar-selector">
+          <span class="avatar-option selected" onclick="selectAvatar('🐱', this)">🐱</span>
+          <span class="avatar-option" onclick="selectAvatar('🐶', this)">🐶</span>
+          <span class="avatar-option" onclick="selectAvatar('🦊', this)">🦊</span>
+          <span class="avatar-option" onclick="selectAvatar('🐼', this)">🐼</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ユーザーネーム</label>
+        <input type="text" id="init-username" class="form-input" placeholder="例: ゲスト123" maxlength="15">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">性別</label>
+        <select id="init-gender" class="form-select">
+          <option value="unspecified">未回答 / 非公開</option>
+          <option value="male">男性</option>
+          <option value="female">女性</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">利用規約</label>
+        <div class="terms-box">
+          【HIMA-LAB 利用規約】<br>
+          1. 誹謗中傷、公序良俗に反するコンテンツの送信を禁止します。<br>
+          2. 他者のプライバシーを侵害する行為やスパムを禁止します。<br>
+          3. 規約違反が確認された場合、事前通知なく利用停止処置を行います。<br>
+          4. サービス利用に関する通信環境・データの管理は自己責任で行ってください。
+        </div>
+        <label style="font-size:12px; display:flex; align-items:center; gap:8px; margin-top:6px; cursor:pointer;">
+          <input type="checkbox" id="terms-agree"> 利用規約に同意します
+        </label>
+      </div>
+
+      <button class="btn-action-primary" onclick="saveInitialProfile()">開始する</button>
+    </div>
+  </div>
+
+  <!-- 通報モーダル -->
+  <div id="modal-report" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-title" style="color:var(--danger-color);">ユーザー通報</div>
+      <p style="font-size:12px; color:var(--text-secondary);">該当のユーザーおよびメッセージの通報を行います。</p>
+      
+      <div class="form-group">
+        <label class="form-label">通報理由</label>
+        <select id="report-reason" class="form-select">
+          <option value="spam">スパム・荒らし行為</option>
+          <option value="harassment">誹謗中傷・ハラスメント</option>
+          <option value="inappropriate">不適切なコンテンツ（画像・動画）</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn-action-secondary" style="padding:8px 16px; font-size:12px;" onclick="closeReportModal()">キャンセル</button>
+        <button class="btn-action-danger" onclick="submitReport()">通報を送信</button>
+      </div>
+    </div>
+  </div>
 
   <div class="app-container">
     <header>
@@ -128,8 +217,7 @@
           <div class="status-dot"></div>
           <span id="online-count">0 online</span>
         </div>
-        <button class="btn-auth">ログイン</button>
-        <button class="btn-auth primary">新規登録</button>
+        <div id="user-profile-badge" style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px;"></div>
       </div>
     </header>
 
@@ -166,12 +254,12 @@
       <h2 style="font-size:28px; font-weight:700;">マッチしました！</h2>
       <div class="match-cards">
         <div class="user-card">
-          <div class="avatar-placeholder" id="my-avatar-name">YOU</div>
+          <div class="avatar-placeholder" id="my-avatar-display">🐱</div>
           <div style="font-weight:700;" id="my-display-name">あなた</div>
         </div>
         <div style="font-size:20px; font-weight:700; color:var(--accent-color);">VS</div>
         <div class="user-card">
-          <div class="avatar-placeholder" id="partner-avatar-name">USER</div>
+          <div class="avatar-placeholder" id="partner-avatar-display">🐶</div>
           <div style="font-weight:700;" id="matched-user-name">相手ユーザー</div>
         </div>
       </div>
@@ -181,12 +269,27 @@
     <!-- 4. チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
-        <div class="chat-header" id="chat-title">チャットルーム</div>
+        <div class="chat-header">
+          <span id="chat-title">チャットルーム</span>
+          <button class="btn-action-secondary" style="padding:6px 14px; font-size:12px;" onclick="toggleCallOverlay()">📞 通信/通話</button>
+        </div>
+
+        <!-- 通話オーバーレイ -->
+        <div class="call-overlay" id="call-overlay">
+          <div style="font-size:11px; font-weight:600; color:var(--text-secondary);">1対1 リアルタイム通話</div>
+          <div class="call-videos">
+            <video id="local-video" class="call-video-box" autoplay muted playsinline></video>
+            <video id="remote-video" class="call-video-box" autoplay playsinline></video>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action-primary" style="flex:1; padding:6px; font-size:11px;" onclick="startCall()">通話開通</button>
+            <button class="btn-action-danger" style="flex:1; padding:6px; font-size:11px;" onclick="endCall()">切断</button>
+          </div>
+        </div>
         
         <div class="chat-messages" id="chat-messages-container">
           <div class="chat-messages-inner" id="chat-messages">
-            <div class="message-item">
-              <span class="message-sender">System</span>
+            <div class="message-item system">
               <div class="message-bubble">マッチングが成功しました！会話を始めてみましょう。</div>
             </div>
           </div>
@@ -209,10 +312,12 @@
           <button class="btn-action-secondary" onclick="leaveChat()" style="padding:0 16px;">退室</button>
         </div>
       </div>
+      
+      <!-- 右サイドバー（1対1チャット時は相手のプロフィールのみを表示） -->
       <aside class="sidebar-panel" style="border-radius:0; border-top:none; border-bottom:none; border-right:none;">
-        <div class="sidebar-header">参加メンバー</div>
-        <div class="sidebar-content" id="chat-members">
-          <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">オンライン接続中</div>
+        <div class="sidebar-header">会話中の相手情報</div>
+        <div class="sidebar-content" id="chat-partner-info">
+          <!-- 相手のプロフィールを表示 -->
         </div>
       </aside>
     </div>
@@ -224,128 +329,224 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const myUserId = 'user_' + Math.floor(Math.random() * 10000);
-    const myUserName = 'Guest_' + myUserId.slice(-4);
-    
+    let myUserName = 'Guest';
+    let myAvatar = '🐱';
+    let myGender = 'unspecified';
+
     let isMatchingState = false;
     let currentPartner = null;
-    let pendingMedia = null; // { url, type: 'image' | 'video' }
+    let pendingMedia = null;
 
-    document.getElementById('my-display-name').innerText = myUserName;
-    document.getElementById('my-avatar-name').innerText = myUserName.slice(-2);
+    // WebRTC 用
+    let peerConnection = null;
+    let localStream = null;
+    const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19020' }] };
 
-    const room = supabaseClient.channel('global-room', {
-      config: { broadcast: { self: true } }
-    });
+    // プロフィール選択
+    function selectAvatar(avatar, el) {
+      myAvatar = avatar;
+      document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+      el.classList.add('selected');
+    }
 
-    room.on('presence', { event: 'sync' }, () => {
-      const state = room.presenceState();
-      let userList = [];
-      let waitingUsers = [];
+    function saveInitialProfile() {
+      const nameInput = document.getElementById('init-username').value.trim();
+      const agree = document.getElementById('terms-agree').checked;
 
-      for (let id in state) {
-        state[id].forEach(u => {
-          userList.push(u);
-          if (u.isMatching && u.user_id !== myUserId) {
-            waitingUsers.push(u);
+      if (!nameInput) { alert('ユーザーネームを入力してください'); return; }
+      if (!agree) { alert('利用規約への同意が必要です'); return; }
+
+      myUserName = nameInput;
+      myGender = document.getElementById('init-gender').value;
+
+      document.getElementById('user-profile-badge').innerText = `${myAvatar} ${myUserName}`;
+      document.getElementById('my-display-name').innerText = myUserName;
+      document.getElementById('my-avatar-display').innerText = myAvatar;
+      document.getElementById('modal-profile').style.display = 'none';
+
+      initRealtime();
+    }
+
+    let room;
+    function initRealtime() {
+      room = supabaseClient.channel('global-room', {
+        config: { broadcast: { self: true } }
+      });
+
+      room.on('presence', { event: 'sync' }, () => {
+        const state = room.presenceState();
+        let userList = [];
+        let waitingUsers = [];
+        let currentOnlineUserIds = new Set();
+
+        for (let id in state) {
+          state[id].forEach(u => {
+            userList.push(u);
+            currentOnlineUserIds.add(u.user_id);
+            if (u.isMatching && u.user_id !== myUserId) {
+              waitingUsers.push(u);
+            }
+          });
+        }
+
+        document.getElementById('online-count').innerText = `${userList.length} online`;
+
+        // ダッシュボード一覧更新
+        const sidebar = document.getElementById('sidebar-users');
+        if (sidebar) {
+          sidebar.innerHTML = userList.map(u => `
+            <div class="user-item">
+              <div class="user-item-avatar">${u.avatar || '👤'}</div>
+              <div class="user-item-name">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
+              <span class="user-status-tag ${u.isMatching ? 'matching' : ''}">${u.isMatching ? '待機中' : 'オンライン'}</span>
+            </div>
+          `).join('');
+        }
+
+        // 1対1チャット中の相手の切断/退室検知
+        if (currentPartner && !currentOnlineUserIds.has(currentPartner.id)) {
+          appendSystemMessage(`${currentPartner.name} が退室（切断）しました。`);
+          currentPartner = null;
+        }
+
+        // 自動マッチング判定
+        if (isMatchingState && waitingUsers.length > 0 && !currentPartner) {
+          const partner = waitingUsers[0];
+          room.send({
+            type: 'broadcast',
+            event: 'match_found',
+            payload: {
+              targetUserId: partner.user_id,
+              fromUser: { id: myUserId, name: myUserName, avatar: myAvatar, gender: myGender }
+            }
+          });
+          triggerMatchSuccess(partner);
+        }
+      });
+
+      room.on('broadcast', { event: 'match_found' }, (payload) => {
+        const data = payload.payload;
+        if (data.targetUserId === myUserId && isMatchingState) {
+          triggerMatchSuccess(data.fromUser);
+        }
+      });
+
+      room.on('broadcast', { event: 'chat_message' }, (payload) => {
+        appendMessage(payload.payload);
+      });
+
+      room.on('broadcast', { event: 'unsend_message' }, (payload) => {
+        const targetEl = document.getElementById(payload.payload.msgId);
+        if (targetEl) targetEl.remove();
+      });
+
+      room.on('broadcast', { event: 'leave_notification' }, (payload) => {
+        if (currentPartner && payload.payload.senderId === currentPartner.id) {
+          appendSystemMessage(`${payload.payload.senderName} が退室しました。`);
+          currentPartner = null;
+        }
+      });
+
+      // WebRTC シグナリングハンドラ
+      room.on('broadcast', { event: 'rtc_signal' }, async (payload) => {
+        const data = payload.payload;
+        if (data.targetId !== myUserId) return;
+
+        if (data.sdp) {
+          if (!peerConnection) createPeerConnection();
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+          if (data.sdp.type === 'offer') {
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            room.send({
+              type: 'broadcast',
+              event: 'rtc_signal',
+              payload: { targetId: data.fromId, sdp: peerConnection.localDescription }
+            });
           }
-        });
-      }
-
-      document.getElementById('online-count').innerText = `${userList.length} online`;
-
-      const sidebar = document.getElementById('sidebar-users');
-      if (userList.length === 0) {
-        sidebar.innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center; padding-top:20px;">接続ユーザーはいません</div>`;
-      } else {
-        sidebar.innerHTML = userList.map(u => `
-          <div class="user-item">
-            <div class="user-item-avatar">${u.username.slice(-2)}</div>
-            <div class="user-item-name">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
-            <span class="user-status-tag ${u.isMatching ? 'matching' : ''}">${u.isMatching ? '待機中' : 'オンライン'}</span>
-          </div>
-        `).join('');
-      }
-
-      if (isMatchingState && waitingUsers.length > 0 && !currentPartner) {
-        const partner = waitingUsers[0];
-        
-        room.send({
-          type: 'broadcast',
-          event: 'match_found',
-          payload: {
-            targetUserId: partner.user_id,
-            fromUser: { id: myUserId, name: myUserName }
+        } else if (data.candidate) {
+          if (peerConnection) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
           }
-        });
+        }
+      });
 
-        triggerMatchSuccess(partner.username, partner.user_id);
-      }
-    });
-
-    room.on('broadcast', { event: 'match_found' }, (payload) => {
-      const data = payload.payload;
-      if (data.targetUserId === myUserId && isMatchingState) {
-        triggerMatchSuccess(data.fromUser.name, data.fromUser.id);
-      }
-    });
-
-    room.on('broadcast', { event: 'chat_message' }, (payload) => {
-      const msgData = payload.payload;
-      appendMessage(msgData);
-    });
-
-    room.on('broadcast', { event: 'unsend_message' }, (payload) => {
-      const msgId = payload.payload.msgId;
-      const targetEl = document.getElementById(msgId);
-      if (targetEl) {
-        targetEl.remove();
-      }
-    });
-
-    room.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        updatePresence(false);
-      }
-    });
-
-    async function updatePresence(isMatching) {
-      isMatchingState = isMatching;
-      await room.track({
-        user_id: myUserId,
-        username: myUserName,
-        isMatching: isMatching,
-        online_at: new Date().toISOString()
+      room.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          updatePresence(false);
+        }
       });
     }
 
-    function startMatchingQueue() {
-      switchView('view-matching');
-      updatePresence(true);
+    async function updatePresence(isMatching) {
+      isMatchingState = isMatching;
+      if (room) {
+        await room.track({
+          user_id: myUserId,
+          username: myUserName,
+          avatar: myAvatar,
+          gender: myGender,
+          isMatching: isMatching,
+          online_at: new Date().toISOString()
+        });
+      }
     }
 
-    function cancelMatchingQueue() {
-      updatePresence(false);
-      switchView('view-dashboard');
-    }
+    function startMatchingQueue() { switchView('view-matching'); updatePresence(true); }
+    function cancelMatchingQueue() { updatePresence(false); switchView('view-dashboard'); }
 
-    function triggerMatchSuccess(partnerName, partnerId) {
-      currentPartner = { id: partnerId, name: partnerName };
+    function triggerMatchSuccess(partner) {
+      currentPartner = { id: partner.user_id || partner.id, name: partner.username || partner.name, avatar: partner.avatar || '👤', gender: partner.gender || '非公開' };
       updatePresence(false);
 
-      document.getElementById('matched-user-name').innerText = partnerName;
-      document.getElementById('partner-avatar-name').innerText = partnerName.slice(-2);
+      document.getElementById('matched-user-name').innerText = currentPartner.name;
+      document.getElementById('partner-avatar-display').innerText = currentPartner.avatar;
       switchView('view-matched');
     }
 
-    // メッセージ送信処理
+    function openDirectChat() {
+      const name = currentPartner ? currentPartner.name : '相手';
+      document.getElementById('chat-title').innerText = `${name} とのチャット`;
+
+      // 右サイドバーを相手のプロフィール画面に差し替え
+      const sidebar = document.getElementById('chat-partner-info');
+      sidebar.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 0;">
+          <div style="font-size:48px;">${currentPartner.avatar}</div>
+          <div style="font-weight:700; font-size:16px;">${currentPartner.name}</div>
+          <div style="font-size:12px; color:var(--text-muted);">性別: ${currentPartner.gender}</div>
+          <button class="btn-action-danger" style="margin-top:16px;" onclick="openReportModal('${currentPartner.id}')">このユーザーを通報</button>
+        </div>
+      `;
+
+      switchView('view-chat');
+    }
+
+    function openGroupChat(threadName) {
+      document.getElementById('chat-title').innerText = threadName;
+      document.getElementById('chat-partner-info').innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center;">グループチャット参加中</div>`;
+      switchView('view-chat');
+    }
+
+    function leaveChat() {
+      if (currentPartner) {
+        room.send({
+          type: 'broadcast',
+          event: 'leave_notification',
+          payload: { senderId: myUserId, senderName: myUserName }
+        });
+      }
+      currentPartner = null;
+      endCall();
+      switchView('view-dashboard');
+    }
+
     function sendMessage() {
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
-      
       if (!text && !pendingMedia) return;
 
       const msgId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
       room.send({
         type: 'broadcast',
         event: 'chat_message',
@@ -362,75 +563,10 @@
       clearMediaPreview();
     }
 
-    // 送信取り消し
     function unsendMessage(msgId) {
-      room.send({
-        type: 'broadcast',
-        event: 'unsend_message',
-        payload: { msgId: msgId }
-      });
+      room.send({ type: 'broadcast', event: 'unsend_message', payload: { msgId: msgId } });
     }
 
-    // ファイル選択処理
-    function handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-        processMediaFile(file);
-      }
-    }
-
-    // クリップボードのペースト処理（Ctrl + V）
-    document.getElementById('chat-input').addEventListener('paste', (e) => {
-      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      for (let item of items) {
-        if (item.kind === 'file') {
-          const blob = item.getAsFile();
-          if (blob.type.startsWith('image/') || blob.type.startsWith('video/')) {
-            processMediaFile(blob);
-            e.preventDefault();
-            break;
-          }
-        }
-      }
-    });
-
-    // ファイルをBase64化してプレビューに表示
-    function processMediaFile(file) {
-      const isVideo = file.type.startsWith('video/');
-      const reader = new FileReader();
-      
-      reader.onload = function (e) {
-        pendingMedia = {
-          url: e.target.result,
-          type: isVideo ? 'video' : 'image'
-        };
-        showMediaPreview(pendingMedia);
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // プレビューの描画
-    function showMediaPreview(media) {
-      const area = document.getElementById('media-preview-area');
-      const wrapper = document.getElementById('preview-wrapper');
-      
-      if (media.type === 'image') {
-        wrapper.innerHTML = `<img src="${media.url}" class="media-preview-element" alt="preview">`;
-      } else {
-        wrapper.innerHTML = `<video src="${media.url}" class="media-preview-element" autoplay muted loop></video>`;
-      }
-      area.style.display = 'block';
-    }
-
-    // プレビューの消去
-    function clearMediaPreview() {
-      pendingMedia = null;
-      document.getElementById('media-preview-area').style.display = 'none';
-      document.getElementById('preview-wrapper').innerHTML = '';
-      document.getElementById('file-input').value = '';
-    }
-
-    // メッセージの画面追加
     function appendMessage(data) {
       const container = document.getElementById('chat-messages');
       const msgDiv = document.createElement('div');
@@ -440,22 +576,16 @@
       msgDiv.id = data.msgId;
 
       let content = `<span class="message-sender">${data.sender}</span>`;
-      
-      if (data.text) {
-        content += `<div class="message-bubble">${escapeHtml(data.text)}</div>`;
-      }
-      
+      if (data.text) content += `<div class="message-bubble">${escapeHtml(data.text)}</div>`;
       if (data.media) {
-        if (data.media.type === 'image') {
-          content += `<img src="${data.media.url}" class="chat-media-attachment" alt="Attached Image">`;
-        } else if (data.media.type === 'video') {
-          content += `<video src="${data.media.url}" class="chat-media-attachment" controls></video>`;
-        }
+        if (data.media.type === 'image') content += `<img src="${data.media.url}" class="chat-media-attachment" alt="Attached Image">`;
+        else if (data.media.type === 'video') content += `<video src="${data.media.url}" class="chat-media-attachment" controls></video>`;
       }
 
-      if (isSelf) {
-        content += `<button class="btn-unsend" onclick="unsendMessage('${data.msgId}')">送信取り消し</button>`;
-      }
+      content += `<div class="message-actions">`;
+      if (isSelf) content += `<button class="btn-action-link danger" onclick="unsendMessage('${data.msgId}')">送信取り消し</button>`;
+      else content += `<button class="btn-action-link danger" onclick="openReportModal('${data.senderId}')">通報</button>`;
+      content += `</div>`;
 
       msgDiv.innerHTML = content;
       container.appendChild(msgDiv);
@@ -464,29 +594,110 @@
       scrollArea.scrollTop = 0;
     }
 
-    function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    function appendSystemMessage(text) {
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message-item system';
+      msgDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+      container.appendChild(msgDiv);
     }
 
+    // ファイルプレビュー処理
+    function handleFileSelect(e) { if (e.target.files[0]) processMediaFile(e.target.files[0]); }
+    document.getElementById('chat-input').addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.kind === 'file') {
+          const blob = item.getAsFile();
+          if (blob.type.startsWith('image/') || blob.type.startsWith('video/')) {
+            processMediaFile(blob); e.preventDefault(); break;
+          }
+        }
+      }
+    });
+
+    function processMediaFile(file) {
+      const isVideo = file.type.startsWith('video/');
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        pendingMedia = { url: e.target.result, type: isVideo ? 'video' : 'image' };
+        const area = document.getElementById('media-preview-area');
+        const wrapper = document.getElementById('preview-wrapper');
+        wrapper.innerHTML = isVideo ? `<video src="${pendingMedia.url}" class="media-preview-element" autoplay muted loop></video>` : `<img src="${pendingMedia.url}" class="media-preview-element">`;
+        area.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearMediaPreview() {
+      pendingMedia = null;
+      document.getElementById('media-preview-area').style.display = 'none';
+      document.getElementById('preview-wrapper').innerHTML = '';
+      document.getElementById('file-input').value = '';
+    }
+
+    // 通報機能
+    function openReportModal(targetUserId) { document.getElementById('modal-report').style.display = 'flex'; }
+    function closeReportModal() { document.getElementById('modal-report').style.display = 'none'; }
+    function submitReport() {
+      alert('通報を受け付けました。運営チームが確認を行います。');
+      closeReportModal();
+    }
+
+    // WebRTC 通話機能
+    function toggleCallOverlay() {
+      const overlay = document.getElementById('call-overlay');
+      overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    async function startCall() {
+      if (!currentPartner) { alert('通話相手がいません'); return; }
+      createPeerConnection();
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        document.getElementById('local-video').srcObject = localStream;
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+
+        room.send({
+          type: 'broadcast',
+          event: 'rtc_signal',
+          payload: { targetId: currentPartner.id, fromId: myUserId, sdp: peerConnection.localDescription }
+        });
+      } catch (e) {
+        alert('カメラ/マイクのアクセス許可が必要です');
+      }
+    }
+
+    function createPeerConnection() {
+      peerConnection = new RTCPeerConnection(rtcConfig);
+      peerConnection.onicecandidate = (e) => {
+        if (e.candidate && currentPartner) {
+          room.send({
+            type: 'broadcast',
+            event: 'rtc_signal',
+            payload: { targetId: currentPartner.id, fromId: myUserId, candidate: e.candidate }
+          });
+        }
+      };
+      peerConnection.ontrack = (e) => {
+        document.getElementById('remote-video').srcObject = e.streams[0];
+      };
+    }
+
+    function endCall() {
+      if (peerConnection) { peerConnection.close(); peerConnection = null; }
+      if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+      document.getElementById('local-video').srcObject = null;
+      document.getElementById('remote-video').srcObject = null;
+    }
+
+    function escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
     function switchView(viewId) {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       document.getElementById(viewId).classList.add('active');
-    }
-
-    function openDirectChat() {
-      const name = currentPartner ? currentPartner.name : '相手';
-      document.getElementById('chat-title').innerText = `${name} とのチャット`;
-      switchView('view-chat');
-    }
-
-    function openGroupChat(threadName) {
-      document.getElementById('chat-title').innerText = threadName;
-      switchView('view-chat');
-    }
-
-    function leaveChat() {
-      currentPartner = null;
-      switchView('view-dashboard');
     }
 
     /* Three.js 3D背景アニメーション */
@@ -502,51 +713,20 @@
     container.appendChild(renderer.domElement);
 
     const planeGeo = new THREE.PlaneGeometry(120, 80, 50, 40);
-    const planeMat = new THREE.MeshBasicMaterial({
-      color: 0x3b82f6,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.15
-    });
+    const planeMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, wireframe: true, transparent: true, opacity: 0.15 });
     const plane = new THREE.Mesh(planeGeo, planeMat);
     plane.rotation.x = -Math.PI / 3;
     scene.add(plane);
-
-    const particleCount = 60;
-    const particleGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 80;
-      positions[i + 1] = (Math.random() - 0.5) * 60;
-      positions[i + 2] = (Math.random() - 0.5) * 40;
-    }
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    const particleMat = new THREE.PointsMaterial({
-      color: 0x60a5fa,
-      size: 1.2,
-      transparent: true,
-      opacity: 0.5,
-      blending: THREE.AdditiveBlending
-    });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
 
     let count = 0;
     function animate() {
       requestAnimationFrame(animate);
       count += 0.02;
-
       const posArr = planeGeo.attributes.position.array;
       for (let i = 0; i < posArr.length; i += 3) {
-        const x = posArr[i];
-        const y = posArr[i + 1];
-        posArr[i + 2] = Math.sin(x * 0.2 + count) * 1.5 + Math.cos(y * 0.2 + count) * 1.5;
+        posArr[i + 2] = Math.sin(posArr[i] * 0.2 + count) * 1.5 + Math.cos(posArr[i + 1] * 0.2 + count) * 1.5;
       }
       planeGeo.attributes.position.needsUpdate = true;
-      particles.rotation.y = count * 0.05;
-
       renderer.render(scene, camera);
     }
     animate();
