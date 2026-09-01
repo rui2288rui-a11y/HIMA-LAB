@@ -84,12 +84,20 @@
     .chat-header { padding: 12px 16px; border-bottom: 1px solid var(--panel-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); }
     .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
 
-    .message-item { display: flex; flex-direction: column; max-width: 75%; gap: 4px; }
+    .message-item { display: flex; flex-direction: column; max-width: 75%; gap: 4px; position: relative; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
     .message-item.system { align-self: center; align-items: center; max-width: 100%; margin: 6px 0; }
+    
+    .message-bubble-wrapper { display: flex; align-items: center; gap: 6px; }
+    .message-item.self .message-bubble-wrapper { flex-direction: row-reverse; }
+
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 10px 14px; border-radius: 12px; font-size: 13px; word-break: break-all; }
     .message-item.self .message-bubble { background: var(--accent-color); color: #fff; border: none; }
     .message-item.system .message-bubble { background: var(--input-bg); border: none; color: var(--text-secondary); font-size: 11px; padding: 4px 12px; border-radius: 20px; }
+    .message-item.deleted .message-bubble { background: rgba(255,255,255,0.05); color: var(--text-muted); font-style: italic; border: 1px dashed var(--panel-border); }
+
+    .btn-unsend { font-size: 10px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+    .btn-unsend:hover { color: var(--danger-color); text-decoration: underline; }
 
     .chat-media-preview { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 4px; object-fit: cover; }
 
@@ -110,13 +118,13 @@
     .avatar-option { font-size: 22px; padding: 6px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: var(--input-bg); }
     .avatar-option.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.3); }
 
-    /* 通話モーダル＆ビデオ要素 */
     .call-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; background: #000; border-radius: 12px; padding: 8px; min-height: 200px; }
     .call-video-box { position: relative; width: 100%; height: 180px; background: #1e293b; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .call-video-box video { width: 100%; height: 100%; object-fit: cover; }
     .video-label { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; font-size: 10px; }
     
-    .terms-box { background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; height: 140px; overflow-y: auto; font-size: 11px; line-height: 1.6; color: var(--text-secondary); }
+    .terms-box { background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; height: 150px; overflow-y: auto; font-size: 11px; line-height: 1.6; color: var(--text-secondary); }
+    .notice-badge { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger-color); color: #fca5a5; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 6px; }
   </style>
 </head>
 <body class="mode-pc theme-dark">
@@ -128,23 +136,27 @@
     <div class="modal-card">
       <div style="font-size:16px; font-weight:700; text-align:center;">初期設定と利用規約への同意</div>
       
+      <div class="notice-badge">
+        ⚠️ 当サービスは異性紹介・出会い系サイトではありません
+      </div>
+
       <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">利用規約およびコミュニティガイドライン</label>
         <div class="terms-box">
+          <strong>【重要事項：サービス趣旨について】</strong><br>
+          本サービス（HIMA-LAB）は、趣味の雑談やオンラインコミュニティのリアルタイム交流を目的としたWebアプリケーションです。<strong>異性交際を目的とした出会い系サイト（インターネット異性紹介事業）ではありません。</strong>面識のない異性との直接の金銭売買や出会い目的での利用、LINE等の外部連絡先の交換を強要する行為は厳重に禁止します。<br><br>
           <strong>【第1条（総則）】</strong><br>
-          本規約は、HIMA-LAB（以下「当サービス」）が提供するリアルタイムマッチングチャットおよび通話機能の利用条件を定めるものです。ユーザーは本規約を遵守してサービスを利用するものとします。<br><br>
+          ユーザーは本規約を遵守してサービスを利用するものとします。<br><br>
           <strong>【第2条（禁止事項）】</strong><br>
-          ユーザーは、本サービスの利用にあたり以下の行為を行ってはなりません。<br>
-          1. 他のユーザーに対する暴言、中傷、ハラスメント、脅迫行為<br>
-          2. 公序良俗に反するテキスト、画像、動画の送信および配信<br>
-          3. 個人情報の無断収集、開示、商用目的の勧誘、スパム行為<br>
-          4. 外部ツール等を用いた不正アクセスやサービスの運営妨害<br><br>
+          1. 異性紹介・出会い・わいせつ目的の投稿や発言<br>
+          2. 他のユーザーに対する暴言、中傷、ハラスメント、脅迫行為<br>
+          3. 個人情報の無断収集、開示、商用目的の勧誘、スパム行為<br><br>
           <strong>【第3条（免責事項）】</strong><br>
-          当サービスはユーザー間の紛争およびトラブルについて一切の責任を負いません。不快なユーザーに対しては直ちにブロック機能をご利用ください。
+          当サービスはユーザー間の紛争について一切の責任を負いません。不快なユーザーに対しては直ちにブロック機能をご利用ください。
         </div>
         <label style="font-size:12px; display:flex; align-items:center; gap:6px; margin-top:4px; cursor:pointer;">
           <input type="checkbox" id="terms-check">
-          <span>利用規約に同意します</span>
+          <span>出会い系目的ではないこと・利用規約に同意します</span>
         </label>
       </div>
 
@@ -228,13 +240,11 @@
         <button class="btn-action-danger" onclick="endCall(true)">切断する</button>
       </div>
 
-      <!-- 発信中キャンセルボタン -->
       <div id="call-outgoing-actions" style="display:none; margin-top:10px;">
         <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">相手の応答を呼び出しています...</p>
         <button class="btn-action-secondary" onclick="cancelCallSend()">通話をキャンセル</button>
       </div>
 
-      <!-- 着信応答ボタン -->
       <div id="call-incoming-actions" style="display:none; margin-top:10px; gap:12px; justify-content:center;">
         <button class="btn-action-secondary" onclick="respondCall(false)">拒否</button>
         <button class="btn-action-primary" onclick="respondCall(true)">通話に出る</button>
@@ -408,7 +418,7 @@
 
     function saveInitialProfile() {
       const termsCheck = document.getElementById('terms-check').checked;
-      if (!termsCheck) { alert('利用規約に同意してください。'); return; }
+      if (!termsCheck) { alert('「出会い系目的ではないこと・利用規約」にチェックを入れて同意してください。'); return; }
 
       const name = document.getElementById('init-username').value.trim();
       if (!name) { alert('ユーザーネームを入力してください'); return; }
@@ -461,12 +471,15 @@
         }
       });
 
-      /* チャット退室通知 */
+      /* チャット退室通知（相手の画面にシステムメッセージを出して自動離脱） */
       room.on('broadcast', { event: 'chat_leave' }, (payload) => {
         const data = payload.payload;
         if (currentPartner && data.senderId === currentPartner.id && data.targetId === myUserId) {
-          alert(`${data.senderName} が退室しました。`);
-          leaveChat(false);
+          appendSystemMessage(`${data.senderName} が退室しました。`);
+          setTimeout(() => {
+            alert(`${data.senderName} が退室したためチャットを終了します。`);
+            leaveChat(false);
+          }, 800);
         }
       });
 
@@ -476,6 +489,18 @@
         if (blockedUsers.includes(data.senderId)) return;
         if (currentPartner && (data.senderId === myUserId || data.senderId === currentPartner.id)) {
           appendMessage(data);
+        }
+      });
+
+      /* メッセージ送信取り消し受信 */
+      room.on('broadcast', { event: 'chat_unsend' }, (payload) => {
+        const data = payload.payload;
+        const targetMsg = document.getElementById(`msg-${data.msgId}`);
+        if (targetMsg) {
+          targetMsg.classList.add('deleted');
+          targetMsg.querySelector('.message-bubble').innerText = '送信が取り消されたメッセージです';
+          const unsendBtn = targetMsg.querySelector('.btn-unsend');
+          if (unsendBtn) unsendBtn.remove();
         }
       });
 
@@ -658,10 +683,11 @@
       const text = input.value.trim();
       if (!text) return;
 
+      const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
       room.send({
         type: 'broadcast',
         event: 'chat_message',
-        payload: { sender: myUserName, senderId: myUserId, text: text, type: 'text' }
+        payload: { msgId: msgId, sender: myUserName, senderId: myUserId, text: text, type: 'text' }
       });
       input.value = '';
     }
@@ -671,12 +697,14 @@
       if (!file) return;
 
       const isVideo = file.type.startsWith('video/');
+      const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
       const reader = new FileReader();
       reader.onload = function(evt) {
         room.send({
           type: 'broadcast',
           event: 'chat_message',
           payload: {
+            msgId: msgId,
             sender: myUserName,
             senderId: myUserId,
             mediaUrl: evt.target.result,
@@ -694,6 +722,7 @@
       const isSelf = data.senderId === myUserId;
       
       msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
+      msgDiv.id = `msg-${data.msgId}`;
 
       let content = '';
       if (data.type === 'image') {
@@ -704,9 +733,35 @@
         content = data.text;
       }
 
-      msgDiv.innerHTML = `<div class="message-bubble">${content}</div>`;
+      const unsendBtnHTML = isSelf ? `<button class="btn-unsend" onclick="unsendMessage('${data.msgId}')">取り消し</button>` : '';
+
+      msgDiv.innerHTML = `
+        <div class="message-bubble-wrapper">
+          <div class="message-bubble">${content}</div>
+          ${unsendBtnHTML}
+        </div>
+      `;
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
+    }
+
+    function appendSystemMessage(text) {
+      const container = document.getElementById('chat-messages');
+      const sysDiv = document.createElement('div');
+      sysDiv.className = 'message-item system';
+      sysDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+      container.appendChild(sysDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    /* 送信取り消し */
+    function unsendMessage(msgId) {
+      if (!confirm('メッセージの送信を取り消しますか？')) return;
+      room.send({
+        type: 'broadcast',
+        event: 'chat_unsend',
+        payload: { msgId: msgId, senderId: myUserId }
+      });
     }
 
     function switchView(viewId) {
