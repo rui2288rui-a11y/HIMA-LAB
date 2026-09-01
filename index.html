@@ -1536,7 +1536,14 @@ if (profile) {
 
   console.log('プロフィール読み込み成功:', profile);
 }
-    async function logoutFromResonance() {
+ 
+  } else {
+    // ログインしていない
+    authScreen.style.display = 'flex';
+    console.log('ログインが必要です');
+  }
+}
+async function logoutFromResonance() {
   const { error } = await supabaseClient.auth.signOut();
 
   if (error) {
@@ -1549,13 +1556,6 @@ if (profile) {
 
   location.reload();
 }
-  } else {
-    // ログインしていない
-    authScreen.style.display = 'flex';
-    console.log('ログインが必要です');
-  }
-}
-
 checkAuthState();
   </script>
 </body>
