@@ -1477,6 +1477,7 @@ async function checkAuthState() {
     // ログイン済み
     authScreen.style.display = 'none';
     console.log('ログイン済み:', session.user.id);
+    myAuthUserId = session.user.id;
   } else {
     // ログインしていない
     authScreen.style.display = 'flex';
