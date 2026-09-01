@@ -1,335 +1,653 @@
 <!DOCTYPE html>
-<html lang="ja" data-theme="dark">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HIMA-LAB - Find, Group, or 1-on-1 Chat</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>CONNECT-X | コミュニティダッシュボード</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-body: #0b0f17;
-      --bg-card: #151d2a;
+      --bg-dark: #0b0f19;
+      --bg-card: #151c2c;
       --bg-card-hover: #1e293b;
-      --border: #232d3f;
-      --text-main: #f1f5f9;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
       --text-sub: #94a3b8;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --green: #22c55e;
-      --danger: #ef4444;
+      --accent-blue: #00f2fe;
+      --accent-green: #10b981;
+      --accent-grad: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
     }
 
-    [data-theme="light"] {
-      --bg-body: #f8fafc;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
-      --border: #e2e8f0;
-      --text-main: #0f172a;
-      --text-sub: #64748b;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans JP', sans-serif;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background 0.2s, border-color 0.2s; }
-    body { background: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-    .container { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 24px; }
+    /* --------------------------------------------------
+       ヘッダー
+    -------------------------------------------------- */
+    header {
+      height: 64px;
+      background: rgba(21, 28, 44, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
 
-    /* ヘッダー */
-    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
-    .logo-area .logo { font-size: 24px; font-weight: 900; letter-spacing: 1px; }
-    .logo-area .sub { font-size: 12px; color: var(--text-sub); }
-    .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; font-weight: 600; }
-    .online-badge { color: var(--text-sub); }
-    .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
-    .btn-login { background: #000; color: #fff; border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .btn-register { background: #fff; color: #000; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
 
-    /* ナビゲーション */
-    nav { display: flex; justify-content: center; gap: 32px; border-bottom: 1px solid var(--border); }
-    .nav-item { font-size: 16px; font-weight: bold; color: var(--text-sub); padding-bottom: 12px; cursor: pointer; border-bottom: 3px solid transparent; }
-    .nav-item.active { color: var(--text-main); border-color: var(--accent); }
+    .logo {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-    /* メインレイアウト */
-    .main-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
-    @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+    .search-bar {
+      position: relative;
+      width: 280px;
+    }
 
-    .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .section-title { font-size: 18px; font-weight: bold; }
+    .search-bar input {
+      width: 100%;
+      padding: 8px 16px 8px 36px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
 
-    .btn-blue { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
-    .btn-blue:hover { background: var(--accent-hover); }
+    .search-bar input:focus {
+      border-color: var(--accent-blue);
+      background: rgba(255, 255, 255, 0.1);
+    }
 
-    /* グリッドレイアウト */
-    .user-grid-container { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
-    @media (max-width: 700px) { .user-grid-container { grid-template-columns: 1fr; } }
+    .search-bar::before {
+      content: "🔍";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      opacity: 0.6;
+    }
 
-    .featured-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .featured-img-wrap { position: relative; width: 100%; height: 180px; border-radius: 12px; overflow: hidden; }
-    .featured-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
-    .status-tag { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: var(--green); padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-    
-    .tags { display: flex; gap: 6px; }
-    .tag { background: var(--border); font-size: 11px; padding: 4px 8px; border-radius: 6px; color: var(--text-sub); }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-    .small-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    @media (max-width: 600px) { .small-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+    .online-badge {
+      font-size: 13px;
+      color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      font-weight: 500;
+    }
 
-    .small-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; position: relative; }
-    .small-card:hover { background: var(--bg-card-hover); }
-    .avatar-sm { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
-    .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; position: absolute; top: 12px; right: 12px; }
-    .btn-sm-chat { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; width: 100%; margin-top: 4px; }
-    .btn-sm-chat:hover { border-color: var(--accent); color: var(--accent); }
+    .auth-btns {
+      display: flex;
+      gap: 10px;
+    }
 
-    .center-action { display: flex; justify-content: center; margin: 20px 0; }
+    .btn-login, .btn-register {
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-    /* サイドバー */
-    .sidebar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; height: fit-content; }
-    .online-list { display: flex; flex-direction: column; gap: 10px; }
-    .online-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
-    .avatar-xs { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    .btn-login {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
 
-    /* フッター・グループチャット */
-    .group-section { border-top: 1px solid var(--border); padding-top: 20px; }
-    .group-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px; }
-    @media (max-width: 700px) { .group-grid { grid-template-columns: 1fr; } }
+    .btn-login:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
 
-    .group-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; gap: 12px; align-items: center; }
-    .group-icon { font-size: 24px; background: var(--border); padding: 10px; border-radius: 10px; }
+    .btn-register {
+      background: var(--accent-grad);
+      border: none;
+      color: #fff;
+    }
 
-    footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; color: var(--text-sub); }
-    footer .links a { color: var(--text-sub); text-decoration: none; margin-right: 12px; }
+    .btn-register:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
 
-    /* モーダル */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
-    .modal-box { background: var(--bg-card); border: 1px solid var(--border); padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
-    .chat-box { height: 200px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow-y: auto; background: var(--bg-body); display: flex; flex-direction: column; gap: 8px; }
-    .chat-input-area { display: flex; gap: 8px; }
-    .chat-input-area input { flex: 1; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px; outline: none; }
+    /* --------------------------------------------------
+       メインレイアウト (2列 + 下部)
+    -------------------------------------------------- */
+    .dashboard-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      grid-template-rows: 1fr 220px;
+      gap: 16px;
+      padding: 16px 24px;
+      height: calc(100vh - 64px);
+      box-sizing: border-box;
+    }
+
+    /* 1. 左側エリア（メイン表示部）：詳細情報の表示 */
+    .main-profile-area {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      overflow-y: auto;
+    }
+
+    .profile-photo-container {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .profile-photo {
+      width: 160px;
+      height: 160px;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 2px solid var(--border-color);
+    }
+
+    .status-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--accent-green);
+      color: #000;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .profile-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .user-name-title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .user-bio {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .tag-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .btn-start-chat {
+      margin-top: 8px;
+      align-self: flex-start;
+      padding: 12px 28px;
+      background: var(--accent-grad);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+      transition: transform 0.2s;
+    }
+
+    .btn-start-chat:hover {
+      transform: translateY(-2px);
+    }
+
+    /* 2. 右側エリア：オンラインユーザーリスト */
+    .sidebar-online-area {
+      grid-column: 2 / 3;
+      grid-row: 1 / 3;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    /* カテゴリ切り替えタブ（女性/男性） */
+    .category-tabs {
+      display: flex;
+      background: var(--bg-dark);
+      padding: 4px;
+      border-radius: 8px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 6px 0;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+    }
+
+    .user-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: background 0.2s;
+    }
+
+    .user-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .user-info-short {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+    }
+
+    .avatar-mini {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .online-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      background: var(--accent-green);
+      border: 2px solid var(--bg-card);
+      border-radius: 50%;
+    }
+
+    .user-name-short {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-view-profile {
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-size: 11px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-view-profile:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* 3. 下部エリア：グループチャット・スレッド */
+    .threads-area {
+      grid-column: 1 / 2;
+      grid-row: 2 / 3;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .threads-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .threads-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .threads-scroll-container {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .thread-card {
+      min-width: 180px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .thread-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .thread-icon {
+      font-size: 24px;
+    }
+
+    .thread-name {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .thread-tags {
+      display: flex;
+      gap: 4px;
+    }
+
+    .thread-tag {
+      font-size: 10px;
+      color: var(--accent-blue);
+      background: rgba(0, 242, 254, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-create-thread {
+      min-width: 100px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--text-sub);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .btn-create-thread:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .plus-icon {
+      font-size: 20px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
   <!-- ヘッダー -->
   <header>
-    <div class="logo-area">
-      <div class="logo">HIMA-LAB</div>
-      <div class="sub">Find, Group, or 1-on-1 Chat</div>
+    <div class="header-left">
+      <div class="logo">CONNECT-X</div>
+      <div class="search-bar">
+        <input type="text" placeholder="ユーザーやスレッドを検索...">
+      </div>
     </div>
     <div class="header-right">
-      <span class="online-badge">3,456 online now</span>
-      <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
-      <button class="btn-login" onclick="openModal('ログイン')">ログイン</button>
-      <button class="btn-register" onclick="openModal('登録')">登録</button>
+      <div class="online-badge">🟢 3,241人 オンライン</div>
+      <div class="auth-btns">
+        <button class="btn-login">ログイン</button>
+        <button class="btn-register">新規登録</button>
+      </div>
     </div>
   </header>
 
-  <!-- ナビゲーション -->
-  <nav>
-    <div class="nav-item active" onclick="switchTab(this, 'search')">相手を探す</div>
-    <div class="nav-item" onclick="switchTab(this, 'group')">複数人でチャット</div>
-    <div class="nav-item" onclick="switchTab(this, '1on1')">1対1で対話</div>
-  </nav>
+  <!-- ダッシュボード メインエリア -->
+  <div class="dashboard-container">
 
-  <!-- メインコンテンツ -->
-  <div class="main-layout">
-    <!-- 左側コンテンツ -->
-    <main>
-      <div class="content-header">
-        <div class="section-title">相手を探す</div>
-        <button class="btn-blue" onclick="startMatching()">チャットを始める (3,456人がオンライン)</button>
+    <!-- 1. 【左側エリア】詳細情報の表示 -->
+    <section class="main-profile-area">
+      <div class="profile-photo-container">
+        <img class="profile-photo" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="プロフィール写真">
+        <div class="status-indicator">Active</div>
       </div>
-
-      <div class="user-grid-container">
-        <!-- ピックアップユーザー -->
-        <div class="featured-card">
-          <div class="featured-img-wrap">
-            <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400" alt="Kenji">
-            <span class="status-tag">● Active</span>
-          </div>
-          <div style="font-weight: bold; font-size: 16px;">Kenji S. (25)</div>
-          <p style="font-size: 12px; color: var(--text-sub);">フレンドにもなり、お話しちゃう、有意義にも探し、趣味…</p>
-          <div class="tags">
-            <span class="tag">趣味</span>
-            <span class="tag">フードトラック</span>
-          </div>
-          <button class="btn-blue" style="width: 100%; margin-top: 8px;" onclick="openChatWith('Kenji S.')">話す</button>
+      <div class="profile-details">
+        <h1 class="user-name-title">Kenji S. (25)</h1>
+        <p class="user-bio">
+          都内でWebデザイナーをしています。週末はカフェ巡りや映画鑑賞、たまに写真撮影ドライブに行きます！同じ趣味の人と気軽に話せたら嬉しいです。よろしくお願いします！
+        </p>
+        <div class="tags-container">
+          <span class="tag-item"># Webデザイン</span>
+          <span class="tag-item"># カフェ巡り</span>
+          <span class="tag-item"># 映画鑑賞</span>
+          <span class="tag-item"># 写真</span>
+          <span class="tag-item"># ドライブ</span>
         </div>
+        <button class="btn-start-chat">💬 個別チャットを開始</button>
+      </div>
+    </section>
 
-        <!-- 小さなユーザーカード -->
-        <div class="small-cards-grid">
-          <div class="small-card">
-            <span class="status-dot"></span>
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" class="avatar-sm">
-            <div style="font-size: 13px; font-weight: bold;">Haruka M. (23)</div>
-            <button class="btn-sm-chat" onclick="openChatWith('Haruka M.')">💬 チャットを開始</button>
-          </div>
-          <div class="small-card">
-            <span class="status-dot"></span>
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" class="avatar-sm">
-            <div style="font-size: 13px; font-weight: bold;">Yuuki T. (26)</div>
-            <button class="btn-sm-chat" onclick="openChatWith('Yuuki T.')">💬 チャットを開始</button>
-          </div>
-          <div class="small-card">
-            <span class="status-dot"></span>
-            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" class="avatar-sm">
-            <div style="font-size: 13px; font-weight: bold;">Haruka K. (25)</div>
-            <button class="btn-sm-chat" onclick="openChatWith('Haruka K.')">💬 チャットを開始</button>
-          </div>
-          <div class="small-card">
-            <span class="status-dot"></span>
-            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150" class="avatar-sm">
-            <div style="font-size: 13px; font-weight: bold;">Hania M. (26)</div>
-            <button class="btn-sm-chat" onclick="openChatWith('Hania M.')">💬 チャットを開始</button>
-          </div>
-          <div class="small-card">
-            <span class="status-dot"></span>
-            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150" class="avatar-sm">
-            <div style="font-size: 13px; font-weight: bold;">Naria M. (25)</div>
-            <button class="btn-sm-chat" onclick="openChatWith('Naria M.')">💬 チャットを開始</button>
-          </div>
-          <div class="small-card">
-            <span class="status-dot"></span>
-            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150" class="avatar-sm">
-            <div style="font-size: 13px; font-weight: bold;">Kenji G. (25)</div>
-            <button class="btn-sm-chat" onclick="openChatWith('Kenji G.')">💬 チャットを開始</button>
-          </div>
+    <!-- 2. 【右側エリア】オンラインユーザーリスト -->
+    <aside class="sidebar-online-area">
+      <div class="sidebar-header">
+        <div class="sidebar-title">現在オンライン中</div>
+        <!-- カテゴリ切り替えタブ -->
+        <div class="category-tabs">
+          <button class="tab-btn active" onclick="switchCategory('all')">すべて</button>
+          <button class="tab-btn" onclick="switchCategory('female')">女性</button>
+          <button class="tab-btn" onclick="switchCategory('male')">男性</button>
         </div>
       </div>
 
-      <div class="center-action">
-        <button class="btn-blue" onclick="startMatching()">チャットを始める (3,456人がオンライン)</button>
-      </div>
-
-      <!-- 人気グループ -->
-      <div class="group-section">
-        <div class="section-title">人気なグループチャット</div>
-        <div class="group-grid">
-          <div class="group-card">
-            <div class="group-icon">🎬</div>
-            <div>
-              <div style="font-weight: bold; font-size: 14px;">#映画ファン (120名)</div>
-              <div style="font-size: 11px; color: var(--text-sub);">メンバーはオンライン</div>
+      <div class="user-list">
+        <!-- ユーザー項目 -->
+        <div class="user-item">
+          <div class="user-info-short">
+            <div class="avatar-wrapper">
+              <img class="avatar-mini" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="アイコン">
+              <div class="online-dot"></div>
             </div>
+            <span class="user-name-short">Haruka M.</span>
           </div>
-          <div class="group-card">
-            <div class="group-icon">🎵</div>
-            <div>
-              <div style="font-weight: bold; font-size: 14px;">#音楽好き (85名)</div>
-              <div style="font-size: 11px; color: var(--text-sub);">1メンバーオンライン</div>
-            </div>
-          </div>
-          <div class="group-card">
-            <div class="group-icon">🎨</div>
-            <div>
-              <div style="font-weight: bold; font-size: 14px;">#アート好き (1200名)</div>
-              <div style="font-size: 11px; color: var(--text-sub);">メンバーオンライン</div>
-            </div>
-          </div>
+          <button class="btn-view-profile">見る</button>
         </div>
-      </div>
-    </main>
 
-    <!-- サイドバー（オンラインユーザー） -->
-    <aside class="sidebar">
-      <div class="section-title" style="font-size: 15px;">現在オンライン中</div>
-      <div class="online-list">
-        <div class="online-item"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100" class="avatar-xs"> Kenji S.</div>
-        <div class="online-item"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" class="avatar-xs"> Haruka M.</div>
-        <div class="online-item"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="avatar-xs"> Yuuki T.</div>
-        <div class="online-item"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" class="avatar-xs"> Haruka K.</div>
-        <div class="online-item"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100" class="avatar-xs"> Hania M.</div>
-        <div class="online-item"><img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" class="avatar-xs"> Naria M.</div>
+        <div class="user-item">
+          <div class="user-info-short">
+            <div class="avatar-wrapper">
+              <img class="avatar-mini" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="アイコン">
+              <div class="online-dot"></div>
+            </div>
+            <span class="user-name-short">Yuuki T.</span>
+          </div>
+          <button class="btn-view-profile">見る</button>
+        </div>
+
+        <div class="user-item">
+          <div class="user-info-short">
+            <div class="avatar-wrapper">
+              <img class="avatar-mini" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=100&q=80" alt="アイコン">
+              <div class="online-dot"></div>
+            </div>
+            <span class="user-name-short">Aoi K.</span>
+          </div>
+          <button class="btn-view-profile">見る</button>
+        </div>
+
+        <div class="user-item">
+          <div class="user-info-short">
+            <div class="avatar-wrapper">
+              <img class="avatar-mini" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="アイコン">
+              <div class="online-dot"></div>
+            </div>
+            <span class="user-name-short">Ren S.</span>
+          </div>
+          <button class="btn-view-profile">見る</button>
+        </div>
       </div>
     </aside>
+
+    <!-- 3. 【下部エリア】グループチャット・スレッド -->
+    <section class="threads-area">
+      <div class="threads-header">
+        <div class="threads-title">人気・おすすめのグループチャット</div>
+      </div>
+      <div class="threads-scroll-container">
+
+        <!-- 新規スレッド作成ボタン -->
+        <button class="btn-create-thread">
+          <span class="plus-icon">＋</span>
+          <span style="font-size: 11px; font-weight: 700;">新規スレッド</span>
+        </button>
+
+        <!-- スレッドカード -->
+        <div class="thread-card">
+          <div class="thread-icon">🎬</div>
+          <div class="thread-name"># 映画ファン</div>
+          <div class="thread-tags">
+            <span class="thread-tag">映画</span>
+            <span class="thread-tag">最新作</span>
+          </div>
+        </div>
+
+        <div class="thread-card">
+          <div class="thread-icon">💻</div>
+          <div class="thread-name"># プログラミング</div>
+          <div class="thread-tags">
+            <span class="thread-tag">開発</span>
+            <span class="thread-tag">Web</span>
+          </div>
+        </div>
+
+        <div class="thread-card">
+          <div class="thread-icon">🎧</div>
+          <div class="thread-name"># 音楽好き</div>
+          <div class="thread-tags">
+            <span class="thread-tag">邦ロック</span>
+            <span class="thread-tag">ライブ</span>
+          </div>
+        </div>
+
+        <div class="thread-card">
+          <div class="thread-icon">🎮</div>
+          <div class="thread-name"># ゲーム部屋</div>
+          <div class="thread-tags">
+            <span class="thread-tag">FPS</span>
+            <span class="thread-tag">Steam</span>
+          </div>
+        </div>
+
+        <div class="thread-card">
+          <div class="thread-icon">🍜</div>
+          <div class="thread-name"># グルメ巡り</div>
+          <div class="thread-tags">
+            <span class="thread-tag">ラーメン</span>
+            <span class="thread-tag">カフェ</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </div>
 
-  <!-- フッター -->
-  <footer>
-    <div class="links">
-      <a href="#" onclick="alert('HIMA-LABについて')">について</a>
-      <a href="#" onclick="alert('利用規約・通報ガイドライン')">規約</a>
-      <a href="#" onclick="alert('ヘルプ')">ヘルプ</a>
-    </div>
-    <div>© 2024 HIMA-LAB. All Rights Reserved.</div>
-  </footer>
-</div>
-
-<!-- チャットモーダル -->
-<div class="modal-overlay" id="chatModal">
-  <div class="modal-box">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span id="chatTargetName" style="font-weight: bold;">Chat</span>
-      <button onclick="closeModal()" style="background:none; border:none; color:var(--text-main); cursor:pointer;">✕</button>
-    </div>
-    <div class="chat-box" id="chatMessages">
-      <div style="font-size: 11px; color: var(--text-sub); text-align: center;">接続しました</div>
-    </div>
-    <div class="chat-input-area">
-      <input type="text" id="msgInput" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter')sendMsg()">
-      <button class="btn-blue" onclick="sendMsg()">送信</button>
-    </div>
-    <button style="background:none; border:none; color:var(--danger); font-size:11px; cursor:pointer; text-align:left;" onclick="reportUser()">⚠️ このユーザーを通報</button>
-  </div>
-</div>
-
-<script>
-  function toggleTheme() {
-    const html = document.documentElement;
-    html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  }
-
-  function switchTab(el, mode) {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-  }
-
-  function openModal(title) {
-    alert(title + '画面を開きます');
-  }
-
-  function openChatWith(name) {
-    document.getElementById('chatTargetName').innerText = name + ' さんとの対話';
-    document.getElementById('chatModal').style.display = 'flex';
-  }
-
-  function closeModal() {
-    document.getElementById('chatModal').style.display = 'none';
-  }
-
-  function sendMsg() {
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if (!text) return;
-
-    // AI検知（NGワード）
-    if (["死ね", "殺す", "暴言"].some(w => text.includes(w))) {
-      alert("【AI判定】不適切な発言が検知されたため送信をブロックしました。");
-      return;
+  <script>
+    // タブ切替の簡易インタラクション
+    function switchCategory(category) {
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
     }
-
-    const box = document.getElementById('chatMessages');
-    const msgDiv = document.createElement('div');
-    msgDiv.style.fontSize = '13px';
-    msgDiv.innerText = '自分: ' + text;
-    box.appendChild(msgDiv);
-    input.value = '';
-    box.scrollTop = box.scrollHeight;
-  }
-
-  function reportUser() {
-    if (confirm('不適切なユーザーとして通報しますか？')) {
-      alert('通報を受け付けました。運営AIが対応を行います。');
-      closeModal();
-    }
-  }
-
-  function startMatching() {
-    openChatWith('ランダムマッチ相手');
-  }
-</script>
-
+  </script>
 </body>
 </html>
