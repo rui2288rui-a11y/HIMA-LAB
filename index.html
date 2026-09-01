@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HIMA-LAB - Realtime Community</title>
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Three.js (3D背景演出用) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,298 +25,247 @@
       --online-indicator: #10b981;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans JP', sans-serif; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
     body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; overflow: hidden; position: relative; }
 
     #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
     .app-container { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(8px); }
 
     header { height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(6, 8, 13, 0.6); flex-shrink: 0; }
-    .brand-title { font-size: 18px; font-weight: 700; letter-spacing: 0.05em; color: #ffffff; }
+    .brand-title { font-size: 18px; font-weight: 700; color: #ffffff; }
     .brand-sub { font-size: 11px; color: var(--text-muted); }
     .header-actions { display: flex; align-items: center; gap: 16px; }
     .online-counter { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); padding: 6px 14px; border-radius: 20px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--online-indicator); box-shadow: 0 0 8px var(--online-indicator); }
 
-    /* 全ビュー共通スタイル */
     .view-section { display: none !important; width: 100%; height: calc(100vh - 64px); overflow: hidden; }
-
-    /* 画面別の表示レイアウト定義 */
     #view-dashboard.active { display: grid !important; grid-template-columns: 1fr 300px; grid-template-rows: 1fr 200px; gap: 20px; padding: 20px 28px; }
     #view-matching.active { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
     #view-matched.active { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
     #view-chat.active { display: grid !important; grid-template-columns: 1fr 280px; width: 100%; height: calc(100vh - 64px); }
 
-    /* ダッシュボード用スタイル */
     .viewport-panel { grid-column: 1 / 2; grid-row: 1 / 2; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
     .sidebar-panel { grid-column: 2 / 3; grid-row: 1 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
     .sidebar-content { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px 20px; }
 
     .user-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--panel-border); border-radius: 8px; }
     .user-item-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 16px; }
-    .user-item-name { font-size: 13px; font-weight: 500; }
-    .user-status-tag { margin-left: auto; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); color: var(--text-muted); }
-    .user-status-tag.matching { background: rgba(37, 99, 235, 0.2); color: #60a5fa; }
 
-    /* マッチング画面スタイル */
     .progress-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--panel-border); border-top-color: var(--accent-color); animation: spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* マッチ成立画面スタイル */
     .match-cards { display: flex; gap: 32px; align-items: center; }
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
-    .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+    .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 32px; }
 
-    /* チャット画面スタイル */
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; }
-    .chat-header { padding: 12px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
-    
+    .chat-header { padding: 12px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
     .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 16px; }
     .chat-messages-inner { display: flex; flex-direction: column; gap: 16px; }
 
-    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; position: relative; }
+    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
     .message-item.system { align-self: center; align-items: center; max-width: 100%; margin: 8px 0; }
-    .message-sender { font-size: 11px; color: var(--text-muted); }
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; word-break: break-all; }
     .message-item.self .message-bubble { background: var(--accent-color); border: none; }
     .message-item.system .message-bubble { background: rgba(255, 255, 255, 0.05); border: none; color: var(--text-secondary); font-size: 12px; padding: 6px 16px; border-radius: 20px; }
-    
-    .chat-media-attachment { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 4px; border: 1px solid var(--panel-border); display: block; object-fit: contain; }
 
-    .message-actions { display: flex; gap: 8px; }
-    .btn-action-link { font-size: 10px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; text-decoration: underline; margin-top: 2px; }
-    .btn-action-link:hover { color: var(--text-primary); }
-    .btn-action-link.danger:hover { color: var(--danger-color); }
-
-    /* 通話ウィンドウ（オーバーレイ） */
-    .call-overlay { display: none; position: absolute; top: 70px; right: 300px; width: 280px; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; z-index: 10; flex-direction: column; gap: 8px; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-    .call-videos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 100px; }
-    .call-video-box { background: #000; border-radius: 6px; overflow: hidden; width: 100%; height: 100%; object-fit: cover; }
-
-    /* プレビュー表示エリア */
-    .media-preview-area { display: none; padding: 12px 24px 0 24px; background: rgba(6, 8, 13, 0.95); flex-shrink: 0; }
-    .media-preview-container { position: relative; display: inline-block; max-width: 150px; }
-    .media-preview-element { max-width: 150px; max-height: 100px; border-radius: 8px; border: 1px solid var(--panel-border); object-fit: cover; }
-    .btn-remove-preview { position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    
-    /* 入力エリア */
-    .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; flex-shrink: 0; background: rgba(6, 8, 13, 0.95); align-items: center; }
+    .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; align-items: center; background: rgba(6, 8, 13, 0.95); }
     .chat-input { flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; }
-    .btn-icon { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); color: var(--text-secondary); width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 18px; flex-shrink: 0; }
-    .btn-icon:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
 
-    /* ボタン共通 */
-    .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px var(--accent-glow); transition: all 0.2s; }
+    .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-action-primary:hover { background: var(--accent-hover); }
-    .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
     .btn-action-secondary:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-action-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); color: #fca5a5; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-    .btn-action-danger:hover { background: var(--danger-color); color: #fff; }
 
-    /* モーダルダイアログ (初回登録・通報用) */
+    /* モーダル表示領域 */
     .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
     .modal-card { background: #0f1520; border: 1px solid var(--panel-border); border-radius: 16px; padding: 32px; width: 400px; max-width: 90%; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
     .modal-title { font-size: 18px; font-weight: 700; text-align: center; }
-    .form-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
-    .form-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
-    .form-input, .form-select { background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); outline: none; }
+
+    /* アイコン選択スタイル */
     .avatar-selector { display: flex; gap: 12px; justify-content: center; }
-    .avatar-option { font-size: 24px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); }
-    .avatar-option.selected { border-color: var(--accent-color); background: rgba(37,99,235,0.2); }
-    .terms-box { height: 100px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+    .avatar-option { font-size: 28px; padding: 10px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); transition: all 0.2s; }
+    .avatar-option:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
+    .avatar-option.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.3); box-shadow: 0 0 12px var(--accent-glow); }
+
+    /* 通話オーバーレイ画面 */
+    .call-active-window { display: none; position: absolute; top: 70px; right: 20px; width: 300px; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; z-index: 10; flex-direction: column; gap: 12px; backdrop-filter: blur(12px); }
+    .call-video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 110px; }
+    .call-video-box { background: #000; border-radius: 8px; width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body>
 
   <div id="canvas-container"></div>
 
-  <!-- 初回登録モーダル -->
+  <!-- 1. 初回登録モーダル -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
-      <div class="modal-title">初期プロフィール設定</div>
+      <div class="modal-title">プロフィール設定</div>
       
-      <div class="form-group">
-        <label class="form-label">アイコン選択</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">アイコンを選択</label>
         <div class="avatar-selector">
           <span class="avatar-option selected" onclick="selectAvatar('🐱', this)">🐱</span>
           <span class="avatar-option" onclick="selectAvatar('🐶', this)">🐶</span>
           <span class="avatar-option" onclick="selectAvatar('🦊', this)">🦊</span>
           <span class="avatar-option" onclick="selectAvatar('🐼', this)">🐼</span>
+          <span class="avatar-option" onclick="selectAvatar('🐯', this)">🐯</span>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">ユーザーネーム</label>
-        <input type="text" id="init-username" class="form-input" placeholder="例: ゲスト123" maxlength="15">
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">ユーザーネーム</label>
+        <input type="text" id="init-username" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;" placeholder="例: ゲスト123" maxlength="15">
       </div>
 
-      <div class="form-group">
-        <label class="form-label">性別</label>
-        <select id="init-gender" class="form-select">
-          <option value="unspecified">未回答 / 非公開</option>
-          <option value="male">男性</option>
-          <option value="female">女性</option>
-          <option value="other">その他</option>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">性別</label>
+        <select id="init-gender" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;">
+          <option value="未回答">未回答 / 非公開</option>
+          <option value="男性">男性</option>
+          <option value="女性">女性</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">利用規約</label>
-        <div class="terms-box">
-          【HIMA-LAB 利用規約】<br>
-          1. 誹謗中傷、公序良俗に反するコンテンツの送信を禁止します。<br>
-          2. 他者のプライバシーを侵害する行為やスパムを禁止します。<br>
-          3. 規約違反が確認された場合、事前通知なく利用停止処置を行います。<br>
-          4. サービス利用に関する通信環境・データの管理は自己責任で行ってください。
-        </div>
-        <label style="font-size:12px; display:flex; align-items:center; gap:8px; margin-top:6px; cursor:pointer;">
-          <input type="checkbox" id="terms-agree"> 利用規約に同意します
-        </label>
+      <div style="font-size:11px; color:var(--text-muted); background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; height:60px; overflow-y:auto;">
+        【利用規約】誹謗中傷、不適切なメディアの送信を禁止します。快適な対話環境の維持にご協力ください。
       </div>
+      <label style="font-size:12px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="terms-agree"> 利用規約に同意します
+      </label>
 
-      <button class="btn-action-primary" onclick="saveInitialProfile()">開始する</button>
+      <button class="btn-action-primary" onclick="saveInitialProfile()">同意して開始</button>
     </div>
   </div>
 
-  <!-- 通報モーダル -->
-  <div id="modal-report" class="modal-backdrop" style="display:none;">
-    <div class="modal-card">
-      <div class="modal-title" style="color:var(--danger-color);">ユーザー通報</div>
-      <p style="font-size:12px; color:var(--text-secondary);">該当のユーザーおよびメッセージの通報を行います。</p>
+  <!-- 2. 通話モード選択モーダル -->
+  <div id="modal-call-type" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="text-align:center;">
+      <div class="modal-title">通話リクエスト</div>
+      <p style="font-size:13px; color:var(--text-secondary);">通話形式を選択してください。相手に呼び出しを送信します。</p>
       
-      <div class="form-group">
-        <label class="form-label">通報理由</label>
-        <select id="report-reason" class="form-select">
-          <option value="spam">スパム・荒らし行為</option>
-          <option value="harassment">誹謗中傷・ハラスメント</option>
-          <option value="inappropriate">不適切なコンテンツ（画像・動画）</option>
-          <option value="other">その他</option>
-        </select>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+        <button class="btn-action-primary" onclick="initiateCall(false)">🎙️ 音声通話で開始</button>
+        <button class="btn-action-secondary" onclick="initiateCall(true)">📹 ビデオ通話で開始</button>
+        <button class="btn-action-secondary" style="border:none; font-size:12px; color:var(--text-muted);" onclick="closeCallTypeModal()">キャンセル</button>
       </div>
+    </div>
+  </div>
 
-      <div style="display:flex; gap:12px; justify-content:flex-end;">
-        <button class="btn-action-secondary" style="padding:8px 16px; font-size:12px;" onclick="closeReportModal()">キャンセル</button>
-        <button class="btn-action-danger" onclick="submitReport()">通報を送信</button>
+  <!-- 3. 発信中（呼び出し中）モーダル -->
+  <div id="modal-calling" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="text-align:center;">
+      <div class="progress-circle" style="margin: 0 auto;">呼び出し</div>
+      <div class="modal-title" style="margin-top:16px;" id="calling-target-name">相手を呼び出しています...</div>
+      <p style="font-size:12px; color:var(--text-muted);">相手の応答を待っています</p>
+      <button class="btn-action-danger" style="margin-top:12px;" onclick="cancelCall()">呼び出しをキャンセル</button>
+    </div>
+  </div>
+
+  <!-- 4. 着信応答モーダル -->
+  <div id="modal-incoming" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="text-align:center;">
+      <div style="font-size:48px;" id="incoming-avatar">🐱</div>
+      <div class="modal-title" id="incoming-caller-name">○○ から着信</div>
+      <p style="font-size:13px; color:var(--text-secondary);" id="incoming-type-text">音声通話の着信があります</p>
+      
+      <div style="display:flex; gap:12px; margin-top:16px; justify-content:center;">
+        <button class="btn-action-danger" style="flex:1;" onclick="rejectIncomingCall()">拒否</button>
+        <button class="btn-action-primary" style="flex:1;" onclick="acceptIncomingCall()">応答する</button>
       </div>
     </div>
   </div>
 
   <div class="app-container">
     <header>
-      <div class="brand">
+      <div>
         <span class="brand-title">HIMA-LAB</span>
-        <span class="brand-sub">Realtime Community Platform</span>
+        <span class="brand-sub">Realtime Community</span>
       </div>
       <div class="header-actions">
-        <div class="online-counter">
-          <div class="status-dot"></div>
-          <span id="online-count">0 online</span>
-        </div>
-        <div id="user-profile-badge" style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px;"></div>
+        <div class="online-counter"><div class="status-dot"></div><span id="online-count">0 online</span></div>
+        <div id="user-profile-badge" style="font-size:13px; font-weight:600;"></div>
       </div>
     </header>
 
-    <!-- 1. ダッシュボード画面 -->
+    <!-- ダッシュボード -->
     <div id="view-dashboard" class="view-section active">
       <section class="viewport-panel">
-        <h2 style="font-size:20px; font-weight:600;">1対1のセッションを開始</h2>
+        <h2>1対1のマッチングを開始</h2>
         <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入る</button>
       </section>
-
       <aside class="sidebar-panel">
-        <div class="sidebar-header">現在接続中のユーザー</div>
-        <div class="sidebar-content" id="sidebar-users">
-          <div style="font-size:12px; color:var(--text-muted); text-align:center; padding-top:20px;">接続ユーザーを確認中...</div>
-        </div>
+        <div class="sidebar-header">接続中のユーザー</div>
+        <div class="sidebar-content" id="sidebar-users"></div>
       </aside>
-
       <section class="threads-panel">
-        <div style="font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:12px;">アクティブスレッド</div>
-        <button class="btn-action-secondary" style="padding:10px 20px; font-size:13px;" onclick="openGroupChat('#映画ファン (120名)')">#映画ファン スレッドに参加</button>
+        <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">アクティブスレッド</div>
       </section>
     </div>
 
-    <!-- 2. マッチング中画面 -->
+    <!-- マッチング中 -->
     <div id="view-matching" class="view-section">
-      <h2 style="font-size:24px; font-weight:600;">マッチング相手を探しています...</h2>
-      <p style="color:var(--text-secondary); font-size:14px;">誰かが「待機キューに入る」を押すと自動で接続されます。</p>
+      <h2>相手を探しています...</h2>
       <div class="progress-circle">待機中</div>
-      <button class="btn-action-secondary" onclick="cancelMatchingQueue()" style="margin-top:20px;">キャンセル</button>
+      <button class="btn-action-secondary" onclick="cancelMatchingQueue()">キャンセル</button>
     </div>
 
-    <!-- 3. マッチ成立画面 -->
+    <!-- マッチ成立 -->
     <div id="view-matched" class="view-section">
-      <h2 style="font-size:28px; font-weight:700;">マッチしました！</h2>
+      <h2>マッチング完了！</h2>
       <div class="match-cards">
         <div class="user-card">
           <div class="avatar-placeholder" id="my-avatar-display">🐱</div>
-          <div style="font-weight:700;" id="my-display-name">あなた</div>
+          <div id="my-display-name">あなた</div>
         </div>
         <div style="font-size:20px; font-weight:700; color:var(--accent-color);">VS</div>
         <div class="user-card">
           <div class="avatar-placeholder" id="partner-avatar-display">🐶</div>
-          <div style="font-weight:700;" id="matched-user-name">相手ユーザー</div>
+          <div id="matched-user-name">相手</div>
         </div>
       </div>
-      <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを始める</button>
+      <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを開始</button>
     </div>
 
-    <!-- 4. チャット画面 -->
+    <!-- チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header">
           <span id="chat-title">チャットルーム</span>
-          <button class="btn-action-secondary" style="padding:6px 14px; font-size:12px;" onclick="toggleCallOverlay()">📞 通信/通話</button>
+          <button class="btn-action-secondary" style="padding:6px 14px; font-size:12px;" onclick="openCallTypeModal()">📞 通話を開始</button>
         </div>
 
-        <!-- 通話オーバーレイ -->
-        <div class="call-overlay" id="call-overlay">
-          <div style="font-size:11px; font-weight:600; color:var(--text-secondary);">1対1 リアルタイム通話</div>
-          <div class="call-videos">
+        <!-- 通話中表示エリア -->
+        <div class="call-active-window" id="call-active-window">
+          <div style="font-size:12px; font-weight:600; color:var(--text-secondary);" id="call-status-label">通話中</div>
+          <div class="call-video-grid">
             <video id="local-video" class="call-video-box" autoplay muted playsinline></video>
             <video id="remote-video" class="call-video-box" autoplay playsinline></video>
           </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn-action-primary" style="flex:1; padding:6px; font-size:11px;" onclick="startCall()">通話開通</button>
-            <button class="btn-action-danger" style="flex:1; padding:6px; font-size:11px;" onclick="endCall()">切断</button>
-          </div>
+          <button class="btn-action-danger" style="width:100%; padding:6px;" onclick="endCall()">通話を終了</button>
         </div>
         
-        <div class="chat-messages" id="chat-messages-container">
+        <div class="chat-messages">
           <div class="chat-messages-inner" id="chat-messages">
-            <div class="message-item system">
-              <div class="message-bubble">マッチングが成功しました！会話を始めてみましょう。</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- プレビュー表示部分 -->
-        <div class="media-preview-area" id="media-preview-area">
-          <div class="media-preview-container">
-            <div id="preview-wrapper"></div>
-            <button class="btn-remove-preview" onclick="clearMediaPreview()">✕</button>
+            <div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>
           </div>
         </div>
 
         <div class="chat-input-area">
-          <input type="file" id="file-input" accept="image/*,video/*" style="display:none;" onchange="handleFileSelect(event)">
-          <button class="btn-icon" onclick="document.getElementById('file-input').click()" title="画像・動画を添付">📁</button>
-          
-          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力または画像/動画を貼り付け..." onkeypress="if(event.key==='Enter') sendMessage()">
-          <button class="btn-action-primary" style="padding:0 24px;" onclick="sendMessage()">送信</button>
-          <button class="btn-action-secondary" onclick="leaveChat()" style="padding:0 16px;">退室</button>
+          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <button class="btn-action-primary" onclick="sendMessage()">送信</button>
+          <button class="btn-action-secondary" onclick="leaveChat()">退室</button>
         </div>
       </div>
       
-      <!-- 右サイドバー（1対1チャット時は相手のプロフィールのみを表示） -->
-      <aside class="sidebar-panel" style="border-radius:0; border-top:none; border-bottom:none; border-right:none;">
-        <div class="sidebar-header">会話中の相手情報</div>
-        <div class="sidebar-content" id="chat-partner-info">
-          <!-- 相手のプロフィールを表示 -->
-        </div>
+      <aside class="sidebar-panel">
+        <div class="sidebar-header">会話中の相手</div>
+        <div class="sidebar-content" id="chat-partner-info"></div>
       </aside>
     </div>
   </div>
@@ -331,18 +278,15 @@
     const myUserId = 'user_' + Math.floor(Math.random() * 10000);
     let myUserName = 'Guest';
     let myAvatar = '🐱';
-    let myGender = 'unspecified';
+    let myGender = '未回答';
 
-    let isMatchingState = false;
     let currentPartner = null;
-    let pendingMedia = null;
-
-    // WebRTC 用
+    let pendingCallData = null;
     let peerConnection = null;
     let localStream = null;
     const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19020' }] };
 
-    // プロフィール選択
+    // アイコン選択処理
     function selectAvatar(avatar, el) {
       myAvatar = avatar;
       document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
@@ -350,13 +294,11 @@
     }
 
     function saveInitialProfile() {
-      const nameInput = document.getElementById('init-username').value.trim();
-      const agree = document.getElementById('terms-agree').checked;
+      const name = document.getElementById('init-username').value.trim();
+      if (!name) { alert('ユーザーネームを入力してください'); return; }
+      if (!document.getElementById('terms-agree').checked) { alert('利用規約に同意してください'); return; }
 
-      if (!nameInput) { alert('ユーザーネームを入力してください'); return; }
-      if (!agree) { alert('利用規約への同意が必要です'); return; }
-
-      myUserName = nameInput;
+      myUserName = name;
       myGender = document.getElementById('init-gender').value;
 
       document.getElementById('user-profile-badge').innerText = `${myAvatar} ${myUserName}`;
@@ -369,85 +311,51 @@
 
     let room;
     function initRealtime() {
-      room = supabaseClient.channel('global-room', {
-        config: { broadcast: { self: true } }
-      });
+      room = supabaseClient.channel('global-room', { config: { broadcast: { self: true } } });
 
       room.on('presence', { event: 'sync' }, () => {
         const state = room.presenceState();
         let userList = [];
-        let waitingUsers = [];
-        let currentOnlineUserIds = new Set();
-
-        for (let id in state) {
-          state[id].forEach(u => {
-            userList.push(u);
-            currentOnlineUserIds.add(u.user_id);
-            if (u.isMatching && u.user_id !== myUserId) {
-              waitingUsers.push(u);
-            }
-          });
-        }
-
+        for (let id in state) state[id].forEach(u => userList.push(u));
         document.getElementById('online-count').innerText = `${userList.length} online`;
 
-        // ダッシュボード一覧更新
         const sidebar = document.getElementById('sidebar-users');
         if (sidebar) {
           sidebar.innerHTML = userList.map(u => `
             <div class="user-item">
-              <div class="user-item-avatar">${u.avatar || '👤'}</div>
-              <div class="user-item-name">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
-              <span class="user-status-tag ${u.isMatching ? 'matching' : ''}">${u.isMatching ? '待機中' : 'オンライン'}</span>
+              <div class="user-item-avatar">${u.avatar}</div>
+              <div style="font-size:13px;">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
             </div>
           `).join('');
         }
-
-        // 1対1チャット中の相手の切断/退室検知
-        if (currentPartner && !currentOnlineUserIds.has(currentPartner.id)) {
-          appendSystemMessage(`${currentPartner.name} が退室（切断）しました。`);
-          currentPartner = null;
-        }
-
-        // 自動マッチング判定
-        if (isMatchingState && waitingUsers.length > 0 && !currentPartner) {
-          const partner = waitingUsers[0];
-          room.send({
-            type: 'broadcast',
-            event: 'match_found',
-            payload: {
-              targetUserId: partner.user_id,
-              fromUser: { id: myUserId, name: myUserName, avatar: myAvatar, gender: myGender }
-            }
-          });
-          triggerMatchSuccess(partner);
-        }
       });
 
-      room.on('broadcast', { event: 'match_found' }, (payload) => {
+      room.on('broadcast', { event: 'chat_message' }, (payload) => appendMessage(payload.payload));
+
+      // 通話イベント受領
+      room.on('broadcast', { event: 'call_request' }, (payload) => {
         const data = payload.payload;
-        if (data.targetUserId === myUserId && isMatchingState) {
-          triggerMatchSuccess(data.fromUser);
+        if (data.targetId === myUserId) {
+          pendingCallData = data;
+          document.getElementById('incoming-avatar').innerText = data.callerAvatar;
+          document.getElementById('incoming-caller-name').innerText = `${data.callerName} から着信`;
+          document.getElementById('incoming-type-text').innerText = data.isVideo ? '📹 ビデオ通話の着信があります' : '🎙️ 音声通話の着信があります';
+          document.getElementById('modal-incoming').style.display = 'flex';
         }
       });
 
-      room.on('broadcast', { event: 'chat_message' }, (payload) => {
-        appendMessage(payload.payload);
-      });
-
-      room.on('broadcast', { event: 'unsend_message' }, (payload) => {
-        const targetEl = document.getElementById(payload.payload.msgId);
-        if (targetEl) targetEl.remove();
-      });
-
-      room.on('broadcast', { event: 'leave_notification' }, (payload) => {
-        if (currentPartner && payload.payload.senderId === currentPartner.id) {
-          appendSystemMessage(`${payload.payload.senderName} が退室しました。`);
-          currentPartner = null;
+      room.on('broadcast', { event: 'call_response' }, async (payload) => {
+        const data = payload.payload;
+        if (data.targetId === myUserId) {
+          document.getElementById('modal-calling').style.display = 'none';
+          if (data.accepted) {
+            startRtcConnection(data.isVideo, true);
+          } else {
+            alert('通話リクエストが拒否されました');
+          }
         }
       });
 
-      // WebRTC シグナリングハンドラ
       room.on('broadcast', { event: 'rtc_signal' }, async (payload) => {
         const data = payload.payload;
         if (data.targetId !== myUserId) return;
@@ -458,216 +366,97 @@
           if (data.sdp.type === 'offer') {
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
-            room.send({
-              type: 'broadcast',
-              event: 'rtc_signal',
-              payload: { targetId: data.fromId, sdp: peerConnection.localDescription }
-            });
+            room.send({ type: 'broadcast', event: 'rtc_signal', payload: { targetId: data.fromId, sdp: peerConnection.localDescription } });
           }
-        } else if (data.candidate) {
-          if (peerConnection) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-          }
+        } else if (data.candidate && peerConnection) {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         }
       });
 
-      room.subscribe(async (status) => {
+      room.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          updatePresence(false);
+          room.track({ user_id: myUserId, username: myUserName, avatar: myAvatar });
         }
       });
     }
 
-    async function updatePresence(isMatching) {
-      isMatchingState = isMatching;
-      if (room) {
-        await room.track({
-          user_id: myUserId,
-          username: myUserName,
-          avatar: myAvatar,
-          gender: myGender,
-          isMatching: isMatching,
-          online_at: new Date().toISOString()
-        });
-      }
+    /* 通話モーダル制御 */
+    function openCallTypeModal() {
+      if (!currentPartner) { alert('相手がいません'); return; }
+      document.getElementById('modal-call-type').style.display = 'flex';
     }
+    function closeCallTypeModal() { document.getElementById('modal-call-type').style.display = 'none'; }
 
-    function startMatchingQueue() { switchView('view-matching'); updatePresence(true); }
-    function cancelMatchingQueue() { updatePresence(false); switchView('view-dashboard'); }
+    function initiateCall(isVideo) {
+      closeCallTypeModal();
+      document.getElementById('calling-target-name').innerText = `${currentPartner.name} を呼び出しています...`;
+      document.getElementById('modal-calling').style.display = 'flex';
 
-    function triggerMatchSuccess(partner) {
-      currentPartner = { id: partner.user_id || partner.id, name: partner.username || partner.name, avatar: partner.avatar || '👤', gender: partner.gender || '非公開' };
-      updatePresence(false);
-
-      document.getElementById('matched-user-name').innerText = currentPartner.name;
-      document.getElementById('partner-avatar-display').innerText = currentPartner.avatar;
-      switchView('view-matched');
-    }
-
-    function openDirectChat() {
-      const name = currentPartner ? currentPartner.name : '相手';
-      document.getElementById('chat-title').innerText = `${name} とのチャット`;
-
-      // 右サイドバーを相手のプロフィール画面に差し替え
-      const sidebar = document.getElementById('chat-partner-info');
-      sidebar.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 0;">
-          <div style="font-size:48px;">${currentPartner.avatar}</div>
-          <div style="font-weight:700; font-size:16px;">${currentPartner.name}</div>
-          <div style="font-size:12px; color:var(--text-muted);">性別: ${currentPartner.gender}</div>
-          <button class="btn-action-danger" style="margin-top:16px;" onclick="openReportModal('${currentPartner.id}')">このユーザーを通報</button>
-        </div>
-      `;
-
-      switchView('view-chat');
-    }
-
-    function openGroupChat(threadName) {
-      document.getElementById('chat-title').innerText = threadName;
-      document.getElementById('chat-partner-info').innerHTML = `<div style="font-size:12px; color:var(--text-muted); text-align:center;">グループチャット参加中</div>`;
-      switchView('view-chat');
-    }
-
-    function leaveChat() {
-      if (currentPartner) {
-        room.send({
-          type: 'broadcast',
-          event: 'leave_notification',
-          payload: { senderId: myUserId, senderName: myUserName }
-        });
-      }
-      currentPartner = null;
-      endCall();
-      switchView('view-dashboard');
-    }
-
-    function sendMessage() {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text && !pendingMedia) return;
-
-      const msgId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
       room.send({
         type: 'broadcast',
-        event: 'chat_message',
+        event: 'call_request',
         payload: {
-          msgId: msgId,
-          sender: myUserName,
-          senderId: myUserId,
-          text: text,
-          media: pendingMedia
+          targetId: currentPartner.id,
+          callerId: myUserId,
+          callerName: myUserName,
+          callerAvatar: myAvatar,
+          isVideo: isVideo
         }
       });
-
-      input.value = '';
-      clearMediaPreview();
     }
 
-    function unsendMessage(msgId) {
-      room.send({ type: 'broadcast', event: 'unsend_message', payload: { msgId: msgId } });
+    function cancelCall() {
+      document.getElementById('modal-calling').style.display = 'none';
     }
 
-    function appendMessage(data) {
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      const isSelf = data.senderId === myUserId;
+    function acceptIncomingCall() {
+      document.getElementById('modal-incoming').style.display = 'none';
+      if (!pendingCallData) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'call_response',
+        payload: { targetId: pendingCallData.callerId, accepted: true, isVideo: pendingCallData.isVideo }
+      });
+
+      startRtcConnection(pendingCallData.isVideo, false);
+    }
+
+    function rejectIncomingCall() {
+      document.getElementById('modal-incoming').style.display = 'none';
+      if (!pendingCallData) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'call_response',
+        payload: { targetId: pendingCallData.callerId, accepted: false }
+      });
+    }
+
+    /* WebRTC 接続処理 */
+    async function startRtcConnection(isVideo, isOffer) {
+      document.getElementById('call-active-window').style.display = 'flex';
+      document.getElementById('call-status-label').innerText = isVideo ? '📹 ビデオ通話中' : '🎙️ 音声通話中';
       
-      msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
-      msgDiv.id = data.msgId;
-
-      let content = `<span class="message-sender">${data.sender}</span>`;
-      if (data.text) content += `<div class="message-bubble">${escapeHtml(data.text)}</div>`;
-      if (data.media) {
-        if (data.media.type === 'image') content += `<img src="${data.media.url}" class="chat-media-attachment" alt="Attached Image">`;
-        else if (data.media.type === 'video') content += `<video src="${data.media.url}" class="chat-media-attachment" controls></video>`;
-      }
-
-      content += `<div class="message-actions">`;
-      if (isSelf) content += `<button class="btn-action-link danger" onclick="unsendMessage('${data.msgId}')">送信取り消し</button>`;
-      else content += `<button class="btn-action-link danger" onclick="openReportModal('${data.senderId}')">通報</button>`;
-      content += `</div>`;
-
-      msgDiv.innerHTML = content;
-      container.appendChild(msgDiv);
-
-      const scrollArea = document.getElementById('chat-messages-container');
-      scrollArea.scrollTop = 0;
-    }
-
-    function appendSystemMessage(text) {
-      const container = document.getElementById('chat-messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'message-item system';
-      msgDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
-      container.appendChild(msgDiv);
-    }
-
-    // ファイルプレビュー処理
-    function handleFileSelect(e) { if (e.target.files[0]) processMediaFile(e.target.files[0]); }
-    document.getElementById('chat-input').addEventListener('paste', (e) => {
-      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      for (let item of items) {
-        if (item.kind === 'file') {
-          const blob = item.getAsFile();
-          if (blob.type.startsWith('image/') || blob.type.startsWith('video/')) {
-            processMediaFile(blob); e.preventDefault(); break;
-          }
-        }
-      }
-    });
-
-    function processMediaFile(file) {
-      const isVideo = file.type.startsWith('video/');
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        pendingMedia = { url: e.target.result, type: isVideo ? 'video' : 'image' };
-        const area = document.getElementById('media-preview-area');
-        const wrapper = document.getElementById('preview-wrapper');
-        wrapper.innerHTML = isVideo ? `<video src="${pendingMedia.url}" class="media-preview-element" autoplay muted loop></video>` : `<img src="${pendingMedia.url}" class="media-preview-element">`;
-        area.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearMediaPreview() {
-      pendingMedia = null;
-      document.getElementById('media-preview-area').style.display = 'none';
-      document.getElementById('preview-wrapper').innerHTML = '';
-      document.getElementById('file-input').value = '';
-    }
-
-    // 通報機能
-    function openReportModal(targetUserId) { document.getElementById('modal-report').style.display = 'flex'; }
-    function closeReportModal() { document.getElementById('modal-report').style.display = 'none'; }
-    function submitReport() {
-      alert('通報を受け付けました。運営チームが確認を行います。');
-      closeReportModal();
-    }
-
-    // WebRTC 通話機能
-    function toggleCallOverlay() {
-      const overlay = document.getElementById('call-overlay');
-      overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
-    }
-
-    async function startCall() {
-      if (!currentPartner) { alert('通話相手がいません'); return; }
       createPeerConnection();
+
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
         document.getElementById('local-video').srcObject = localStream;
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-
-        room.send({
-          type: 'broadcast',
-          event: 'rtc_signal',
-          payload: { targetId: currentPartner.id, fromId: myUserId, sdp: peerConnection.localDescription }
-        });
+        if (isOffer) {
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          room.send({
+            type: 'broadcast',
+            event: 'rtc_signal',
+            payload: { targetId: currentPartner.id, fromId: myUserId, sdp: peerConnection.localDescription }
+          });
+        }
       } catch (e) {
-        alert('カメラ/マイクのアクセス許可が必要です');
+        alert('マイク/カメラへのアクセスが拒否されました');
+        endCall();
       }
     }
 
@@ -690,17 +479,62 @@
     function endCall() {
       if (peerConnection) { peerConnection.close(); peerConnection = null; }
       if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-      document.getElementById('local-video').srcObject = null;
-      document.getElementById('remote-video').srcObject = null;
+      document.getElementById('call-active-window').style.display = 'none';
     }
 
-    function escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    /* 基本画面切り替え機能 */
+    function startMatchingQueue() { switchView('view-matching'); setTimeout(() => triggerMatchSuccess({ id: 'dummy_user', name: 'さくら', avatar: '🐶', gender: '女性' }), 2000); }
+    function cancelMatchingQueue() { switchView('view-dashboard'); }
+    function triggerMatchSuccess(partner) {
+      currentPartner = partner;
+      document.getElementById('matched-user-name').innerText = partner.name;
+      document.getElementById('partner-avatar-display').innerText = partner.avatar;
+      switchView('view-matched');
+    }
+
+    function openDirectChat() {
+      document.getElementById('chat-title').innerText = `${currentPartner.name} とのチャット`;
+      document.getElementById('chat-partner-info').innerHTML = `
+        <div style="text-align:center; padding:20px 0;">
+          <div style="font-size:48px;">${currentPartner.avatar}</div>
+          <div style="font-weight:700;">${currentPartner.name}</div>
+          <div style="font-size:12px; color:var(--text-muted);">性別: ${currentPartner.gender}</div>
+        </div>
+      `;
+      switchView('view-chat');
+    }
+
+    function leaveChat() { endCall(); currentPartner = null; switchView('view-dashboard'); }
+
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: { sender: myUserName, senderId: myUserId, text: text }
+      });
+      input.value = '';
+    }
+
+    function appendMessage(data) {
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      const isSelf = data.senderId === myUserId;
+      
+      msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
+      msgDiv.innerHTML = `<div class="message-bubble">${data.text}</div>`;
+      container.appendChild(msgDiv);
+    }
+
     function switchView(viewId) {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       document.getElementById(viewId).classList.add('active');
     }
 
-    /* Three.js 3D背景アニメーション */
+    /* Three.js 背景アニメーション */
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
@@ -709,7 +543,6 @@
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
 
     const planeGeo = new THREE.PlaneGeometry(120, 80, 50, 40);
@@ -724,18 +557,12 @@
       count += 0.02;
       const posArr = planeGeo.attributes.position.array;
       for (let i = 0; i < posArr.length; i += 3) {
-        posArr[i + 2] = Math.sin(posArr[i] * 0.2 + count) * 1.5 + Math.cos(posArr[i + 1] * 0.2 + count) * 1.5;
+        posArr[i + 2] = Math.sin(posArr[i] * 0.2 + count) * 1.5;
       }
       planeGeo.attributes.position.needsUpdate = true;
       renderer.render(scene, camera);
     }
     animate();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
   </script>
 </body>
 </html>
