@@ -1535,6 +1535,19 @@ if (profile) {
 
   console.log('プロフィール読み込み成功:', profile);
 }
+    async function logoutFromResonance() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    console.error('ログアウトエラー:', error);
+    alert('ログアウトに失敗しました。');
+    return;
+  }
+
+  localStorage.removeItem('resonance_profile');
+
+  location.reload();
+}
   } else {
     // ログインしていない
     authScreen.style.display = 'flex';
