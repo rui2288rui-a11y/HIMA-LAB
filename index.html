@@ -132,6 +132,10 @@
     .avatar-option { font-size: 26px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: var(--input-bg); transition: all 0.2s; }
     .avatar-option.selected { border-color: var(--accent-color); background: rgba(2, 132, 199, 0.15); transform: scale(1.1); }
 
+    .gender-selector { display: flex; gap: 10px; }
+    .gender-option { flex: 1; padding: 10px; text-align: center; border-radius: 10px; border: 1px solid var(--panel-border); background: var(--input-bg); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .gender-option.selected { border-color: var(--accent-color); background: rgba(2, 132, 199, 0.15); color: var(--accent-color); }
+
     .call-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; background: #000; border-radius: 12px; padding: 8px; min-height: 200px; }
     .call-video-box { position: relative; width: 100%; height: 180px; background: #1e293b; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .call-video-box video { width: 100%; height: 100%; object-fit: cover; }
@@ -158,13 +162,13 @@
 
   <div id="canvas-container"></div>
 
-  <!-- 1. プロフィール設定・変更モーダル（初期＆常時変更用） -->
+  <!-- 1. プロフィール設定・変更モーダル（性別選択＆規約同意付き） -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
       <div style="font-size:18px; font-weight:700; text-align:center; color:var(--text-primary);" id="profile-modal-title">HIMA-LABへようこそ</div>
       <p style="font-size:12px; color:var(--text-secondary); text-align:center; margin-top:-8px;" id="profile-modal-desc">上品で心地よい大人のリアルタイムコミュニティ</p>
 
-      <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">アバターアイコン</label>
         <div class="avatar-selector">
           <span class="avatar-option selected" onclick="selectPresetAvatar('✨', this)">✨</span>
@@ -173,27 +177,41 @@
           <span class="avatar-option" onclick="selectPresetAvatar('☕', this)">☕</span>
           <span class="avatar-option" onclick="selectPresetAvatar('🎨', this)">🎨</span>
         </div>
-        <div style="text-align:center; margin-top:4px;">
-          <label for="custom-avatar-input" class="btn-action-secondary" style="padding:6px 14px; font-size:12px; cursor:pointer; display:inline-block;">📁 オリジナル画像を選択</label>
+        <div style="text-align:center; margin-top:2px;">
+          <label for="custom-avatar-input" class="btn-action-secondary" style="padding:6px 14px; font-size:12px; cursor:pointer; display:inline-block;">📁 画像を選択</label>
           <input type="file" id="custom-avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
         </div>
         <div id="avatar-preview-container" style="display:none; text-align:center;">
-          <img id="avatar-preview-img" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color); box-shadow: 0 4px 12px var(--shadow-color);">
+          <img id="avatar-preview-img" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color);">
         </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">ユーザーネーム（必須）</label>
-        <input type="text" id="init-username" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); font-size:14px; outline:none;" placeholder="例: ゲスト" maxlength="15">
+        <input type="text" id="init-username" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:10px 14px; color:var(--text-primary); font-size:14px; outline:none;" placeholder="例: ゲスト" maxlength="15">
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">性別（非公開可）</label>
+        <div class="gender-selector">
+          <div class="gender-option selected" onclick="selectGender('男性', this)">男性</div>
+          <div class="gender-option" onclick="selectGender('女性', this)">女性</div>
+          <div class="gender-option" onclick="selectGender('非公開', this)">非公開</div>
+        </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">一言自己紹介・ステータス（任意）</label>
-        <textarea id="init-bio" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); height:60px; resize:none; font-size:14px; outline:none;" placeholder="今の気分や趣味を気軽にどうぞ" maxlength="60"></textarea>
+        <textarea id="init-bio" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:10px 14px; color:var(--text-primary); height:50px; resize:none; font-size:14px; outline:none;" placeholder="今の気分や趣味を気軽にどうぞ" maxlength="60"></textarea>
       </div>
 
-      <button class="btn-action-primary" style="margin-top:6px;" onclick="saveInitialProfile()">プロフィールを決定して参加する</button>
-      <p style="font-size:10px; color:var(--text-muted); text-align:center;">※安心安全なコミュニティ維持のため利用規約をご確認の上ご参加ください</p>
+      <!-- 初回のみ表示する規約同意チェック -->
+      <div id="terms-agree-container" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary);">
+        <input type="checkbox" id="chk-terms" style="width:16px; height:16px; accent-color:var(--accent-color); cursor:pointer;">
+        <label for="chk-terms" style="cursor:pointer;"><a onclick="openInfoModal('terms'); event.stopPropagation();" style="color:var(--accent-color); text-decoration:underline;">利用規約</a> および <a onclick="openInfoModal('safety'); event.stopPropagation();" style="color:var(--accent-color); text-decoration:underline;">安心ガイドライン</a> に同意します</label>
+      </div>
+
+      <button class="btn-action-primary" style="margin-top:2px;" onclick="saveInitialProfile()">プロフィールを決定して参加する</button>
     </div>
   </div>
 
@@ -202,23 +220,25 @@
     <div class="modal-card" style="text-align:center; gap:16px;">
       <div style="font-size:16px; font-weight:700;">マッチング中・応答待機中</div>
       <p style="font-size:13px; color:var(--text-secondary);"><span id="request-target-name" style="font-weight:700; color:var(--accent-color);">相手</span> からの応答を待っています...</p>
-      
       <div class="spinner"></div>
-
       <button class="btn-action-secondary" onclick="cancelChatRequest()">リクエストを取り消す</button>
     </div>
   </div>
 
-  <!-- 3. チャット申請受信モーダル -->
+  <!-- 3. マッチング後の相手プロフ確認＆チャット開始選択モーダル（受信側） -->
   <div id="modal-incoming-request" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; gap:16px;">
-      <div style="font-size:16px; font-weight:700;">チャットのリクエストが届きました</div>
-      <div style="display:flex; flex-direction:column; align-items:center; gap:8px; background:var(--input-bg); padding:16px; border-radius:12px; border:1px solid var(--panel-border);">
+      <div style="font-size:16px; font-weight:700;">チャットの申請が届きました</div>
+      <p style="font-size:12px; color:var(--text-secondary);">相手のプロフィールを確認してチャットを開始するか選んでください</p>
+      
+      <div style="display:flex; flex-direction:column; align-items:center; gap:8px; background:var(--input-bg); padding:18px; border-radius:12px; border:1px solid var(--panel-border);">
         <div id="incoming-req-avatar"></div>
-        <div style="font-weight:700; font-size:15px;" id="incoming-req-name">相手名</div>
-        <div style="font-size:12px; color:var(--text-secondary);" id="incoming-req-bio"></div>
+        <div style="font-weight:700; font-size:16px;" id="incoming-req-name">相手名</div>
+        <div style="font-size:11px; padding:2px 10px; background:var(--panel-border); border-radius:10px; color:var(--text-secondary);" id="incoming-req-gender">性別: 非公開</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;" id="incoming-req-bio"></div>
       </div>
-      <div style="display:flex; gap:12px; margin-top:8px;">
+
+      <div style="display:flex; gap:12px; margin-top:4px;">
         <button class="btn-action-secondary" style="flex:1;" onclick="respondChatRequest(false)">見送る</button>
         <button class="btn-action-primary" style="flex:1;" onclick="respondChatRequest(true)">チャットを始める</button>
       </div>
@@ -370,6 +390,7 @@
     const myUserId = 'user_' + Math.floor(Math.random() * 100000);
     let myUserName = '';
     let myAvatar = '✨';
+    let myGender = '男性';
     let myBio = '';
     let isProfileInitialized = false;
 
@@ -510,6 +531,12 @@
       reader.readAsDataURL(file);
     }
 
+    function selectGender(gender, el) {
+      myGender = gender;
+      document.querySelectorAll('.gender-option').forEach(g => g.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
     function renderAvatarHTML(avatarData, size = '28px') {
       if (avatarData && avatarData.startsWith('data:image')) {
         return `<img src="${avatarData}" class="avatar-icon-img" style="width:${size}; height:${size};">`;
@@ -524,12 +551,32 @@
       
       document.getElementById('init-username').value = myUserName || '';
       document.getElementById('init-bio').value = myBio || '';
+
+      // 性別選択状態の復元
+      document.querySelectorAll('.gender-option').forEach(g => {
+        if (g.innerText === myGender) g.classList.add('selected');
+        else g.classList.remove('selected');
+      });
+
+      // 初回登録時以外は規約同意チェックを非表示
+      const termsContainer = document.getElementById('terms-agree-container');
+      if (isProfileInitialized) {
+        termsContainer.style.display = 'none';
+      } else {
+        termsContainer.style.display = 'flex';
+      }
+
       modal.style.display = 'flex';
     }
 
     function saveInitialProfile() {
       const name = document.getElementById('init-username').value.trim();
       if (!name) { alert('ユーザーネームを入力してください'); return; }
+
+      if (!isProfileInitialized) {
+        const agreed = document.getElementById('chk-terms').checked;
+        if (!agreed) { alert('利用規約および安心ガイドラインへの同意が必要です'); return; }
+      }
 
       myUserName = name;
       myBio = document.getElementById('init-bio').value.trim();
@@ -542,9 +589,8 @@
         isProfileInitialized = true;
         initRealtime();
       } else {
-        // すでに接続済みの場合は最新のプロフィールをブロードキャスト同期
         if (room) {
-          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, bio: myBio });
+          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
           broadcastActiveStatus();
         }
       }
@@ -576,8 +622,9 @@
         const data = payload.payload;
         if (data.targetId === myUserId && !blockedUsers.includes(data.fromId)) {
           pendingIncomingReq = data;
-          document.getElementById('incoming-req-avatar').innerHTML = renderAvatarHTML(data.fromAvatar, '50px');
+          document.getElementById('incoming-req-avatar').innerHTML = renderAvatarHTML(data.fromAvatar, '56px');
           document.getElementById('incoming-req-name').innerText = data.fromName;
+          document.getElementById('incoming-req-gender').innerText = `性別: ${data.fromGender || '非公開'}`;
           document.getElementById('incoming-req-bio').innerText = data.fromBio || '（自己紹介未設定）';
           document.getElementById('modal-incoming-request').style.display = 'flex';
           playNotificationSound();
@@ -589,7 +636,7 @@
         if (data.targetId === myUserId) {
           document.getElementById('modal-requesting').style.display = 'none';
           if (data.accepted) {
-            currentPartner = { id: data.responderId, name: data.responderName, avatar: data.responderAvatar, bio: data.responderBio };
+            currentPartner = { id: data.responderId, name: data.responderName, avatar: data.responderAvatar, gender: data.responderGender, bio: data.responderBio };
             openDirectChat();
           } else {
             alert(`${data.responderName} がリクエストを見送りました。`);
@@ -631,7 +678,6 @@
         }
       });
 
-      // 入力中シグナルの正確なハンドリング
       room.on('broadcast', { event: 'typing_status' }, (payload) => {
         const data = payload.payload;
         if (currentPartner && data.senderId === currentPartner.id) {
@@ -694,7 +740,7 @@
 
       room.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, bio: myBio });
+          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
         }
       });
     }
@@ -733,7 +779,7 @@
             <div style="display:flex; align-items:center; gap:10px;">
               ${renderAvatarHTML(u.avatar, '36px')}
               <div>
-                <div style="font-size:13px; font-weight:700;">${u.username}</div>
+                <div style="font-size:13px; font-weight:700;">${u.username} <span style="font-size:10px; font-weight:normal; color:var(--text-muted);">(${u.gender || '非公開'})</span></div>
                 <div style="font-size:11px; color:var(--text-muted);">${u.bio || '自己紹介なし'}</div>
               </div>
             </div>
@@ -757,7 +803,7 @@
       const infoBox = document.getElementById('selected-user-box');
       const btn = document.getElementById('btn-start-chat-request');
       if (selectedTargetUser) {
-        infoBox.innerText = `選択中: ${selectedTargetUser.username}`;
+        infoBox.innerText = `選択中: ${selectedTargetUser.username} (${selectedTargetUser.gender || '非公開'})`;
         btn.disabled = false;
       } else {
         infoBox.innerText = '相手が選択されていません';
@@ -778,6 +824,7 @@
           fromId: myUserId,
           fromName: myUserName,
           fromAvatar: myAvatar,
+          fromGender: myGender,
           fromBio: myBio
         }
       });
@@ -799,6 +846,7 @@
           responderId: myUserId,
           responderName: myUserName,
           responderAvatar: myAvatar,
+          responderGender: myGender,
           responderBio: myBio,
           accepted: accepted
         }
@@ -809,6 +857,7 @@
           id: pendingIncomingReq.fromId,
           name: pendingIncomingReq.fromName,
           avatar: pendingIncomingReq.fromAvatar,
+          gender: pendingIncomingReq.fromGender,
           bio: pendingIncomingReq.fromBio
         };
         openDirectChat();
@@ -827,6 +876,7 @@
         <div style="text-align:center; padding:20px 0; display:flex; flex-direction:column; align-items:center; gap:10px;">
           ${renderAvatarHTML(currentPartner.avatar, '64px')}
           <div style="font-weight:700; font-size:16px;">${currentPartner.name}</div>
+          <div style="font-size:11px; padding:2px 10px; background:var(--panel-border); border-radius:10px; color:var(--text-secondary);">性別: ${currentPartner.gender || '非公開'}</div>
           <div style="font-size:12px; color:var(--text-secondary); max-width:220px; line-height:1.5;">${currentPartner.bio || '自己紹介なし'}</div>
           <button class="btn-action-danger" style="margin-top:16px;" onclick="blockUser('${currentPartner.id}', '${currentPartner.name}')">🚫 相手をブロック</button>
         </div>
