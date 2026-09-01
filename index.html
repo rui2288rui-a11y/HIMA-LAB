@@ -160,7 +160,51 @@
   </style>
 </head>
 <body class="mode-pc theme-light">
+<!-- ログイン画面：STEP 2 -->
+<div id="auth-screen" style="display:none; position:fixed; inset:0; z-index:200; background:var(--bg-base); align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-card" style="max-width:420px; width:100%;">
+    <div style="text-align:center;">
+      <div style="font-size:24px; font-weight:700;">Resonance Chat</div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:6px;">
+        アカウントにログイン
+      </div>
+    </div>
 
+    <input
+      type="email"
+      id="auth-email"
+      placeholder="メールアドレス"
+      autocomplete="email"
+      style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); font-size:14px; outline:none;"
+    >
+
+    <input
+      type="password"
+      id="auth-password"
+      placeholder="パスワード"
+      autocomplete="current-password"
+      style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); font-size:14px; outline:none;"
+    >
+
+    <button
+      class="btn-action-primary"
+      type="button"
+      onclick="loginWithEmail()"
+    >
+      ログイン
+    </button>
+
+    <button
+      class="btn-action-secondary"
+      type="button"
+      onclick="signupWithEmail()"
+    >
+      新規アカウントを作る
+    </button>
+
+    <div id="auth-message" style="font-size:12px; text-align:center; color:var(--text-secondary); min-height:20px;"></div>
+  </div>
+</div>
   <div id="canvas-container"></div>
 
   <!-- 1. プロフィール設定・変更モーダル（規約同意必須化） -->
@@ -1342,6 +1386,105 @@
       renderer.render(scene, camera);
     }
     animate();
+    // ===== Resonance Chat：Supabaseログイン機能 =====
+
+async function loginWithEmail() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const message = document.getElementById('auth-message');
+
+  if (!email || !password) {
+    message.textContent = 'メールアドレスとパスワードを入力してください。';
+    return;
+  }
+
+  message.textContent = 'ログインしています…';
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent = 'ログインできませんでした：' + error.message;
+    return;
+  }
+
+  message.textContent = 'ログインしました！';
+
+  const authScreen = document.getElementById('auth-screen');
+  if (authScreen) {
+    authScreen.style.display = 'none';
+  }
+
+  console.log('ログイン成功:', data.user.id);
+}
+
+
+async function signupWithEmail() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const message = document.getElementById('auth-message');
+
+  if (!email || !password) {
+    message.textContent = 'メールアドレスとパスワードを入力してください。';
+    return;
+  }
+
+  if (password.length < 6) {
+    message.textContent = 'パスワードは6文字以上にしてください。';
+    return;
+  }
+
+  message.textContent = 'アカウントを作成しています…';
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent = 'アカウントを作成できませんでした：' + error.message;
+    return;
+  }
+
+  if (data.session) {
+    message.textContent = 'アカウントを作成しました！';
+
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) {
+      authScreen.style.display = 'none';
+    }
+  } else {
+    message.textContent =
+      'アカウントを作成しました。確認メールが届いている場合は、メールを確認してください。';
+  }
+
+  console.log('登録成功:', data.user?.id);
+}
+    // ===== ログイン状態の確認 =====
+
+async function checkAuthState() {
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  const authScreen = document.getElementById('auth-screen');
+
+  if (!authScreen) return;
+
+  if (session) {
+    // ログイン済み
+    authScreen.style.display = 'none';
+    console.log('ログイン済み:', session.user.id);
+  } else {
+    // ログインしていない
+    authScreen.style.display = 'flex';
+    console.log('ログインが必要です');
+  }
+}
+
+checkAuthState();
   </script>
 </body>
 </html>
