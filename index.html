@@ -15,7 +15,7 @@
   <style>
     :root {
       --bg-base: #06080d;
-      --panel-bg: rgba(15, 21, 32, 0.75);
+      --panel-bg: rgba(15, 21, 32, 0.85);
       --panel-border: rgba(255, 255, 255, 0.08);
       --text-primary: #f1f5f9;
       --text-secondary: #94a3b8;
@@ -27,12 +27,13 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans JP', sans-serif; -webkit-font-smoothing: antialiased; }
-    html, body { height: 100vh; overflow: hidden; background-color: var(--bg-base); color: var(--text-primary); position: relative; }
+    body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; overflow: hidden; position: relative; }
 
     #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-    .app-container { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(8px); overflow: hidden; }
+    .app-container { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(8px); }
 
-    header { height: 64px; min-height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(6, 8, 13, 0.6); }
+    /* ヘッダー */
+    header { height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(6, 8, 13, 0.8); flex-shrink: 0; }
     .brand-title { font-size: 18px; font-weight: 700; letter-spacing: 0.05em; color: #ffffff; }
     .brand-sub { font-size: 11px; color: var(--text-muted); }
     .header-actions { display: flex; align-items: center; gap: 16px; }
@@ -43,17 +44,18 @@
     .btn-auth:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-auth.primary { background: var(--text-primary); color: var(--bg-base); border: none; font-weight: 600; }
 
-    /* ビュー制御修正（非アクティブ時は非表示にし、見切れを防止） */
-    .view-section { display: none; width: 100%; height: calc(100vh - 64px); overflow: hidden; }
+    /* ビュー制御（画面内にぴったり収めるための修正） */
+    .main-content { flex: 1; height: calc(100vh - 64px); position: relative; overflow: hidden; }
+    .view-section { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
     .view-section.active { display: flex; }
 
-    /* 1. ダッシュボードレイアウト修正 */
-    #view-dashboard { display: grid; grid-template-columns: 1fr 300px; grid-template-rows: 1fr 1fr; gap: 20px; padding: 20px 28px; height: calc(100vh - 64px); }
-    .viewport-panel { grid-column: 1 / 2; grid-row: 1 / 2; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+    /* ダッシュボード */
+    #view-dashboard { display: grid; grid-template-columns: 1fr 300px; grid-template-rows: 1fr 180px; gap: 20px; padding: 20px 28px; box-sizing: border-box; }
+    .viewport-panel { grid-column: 1 / 2; grid-row: 1 / 2; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
     .sidebar-panel { grid-column: 2 / 3; grid-row: 1 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
     .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
     .sidebar-content { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 20px; }
+    .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px 20px; }
 
     .user-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--panel-border); border-radius: 8px; }
     .user-item-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
@@ -61,24 +63,22 @@
     .user-status-tag { margin-left: auto; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); color: var(--text-muted); }
     .user-status-tag.matching { background: rgba(37, 99, 235, 0.2); color: #60a5fa; }
 
-    /* 2. マッチング中 */
+    /* マッチング中 */
     #view-matching { flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
     .progress-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--panel-border); border-top-color: var(--accent-color); animation: spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 3. マッチ成立（カード＆プロフィール拡張） */
-    #view-matched { flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
-    .match-cards { display: flex; gap: 40px; align-items: center; }
-    .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 240px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-    .avatar-circle { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff; border: 2px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 16px var(--accent-glow); }
-    .user-info-group { text-align: center; display: flex; flex-direction: column; gap: 4px; }
-    .user-card-name { font-size: 16px; font-weight: 700; color: #ffffff; }
-    .user-card-gender { font-size: 12px; color: #60a5fa; background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(37, 99, 235, 0.3); padding: 2px 10px; border-radius: 12px; display: inline-block; margin-top: 2px; }
-    .user-card-bio { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4; }
+    /* マッチ成立 & プロフィール表示 */
+    #view-matched { flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 20px; overflow-y: auto; }
+    .match-cards { display: flex; gap: 24px; align-items: center; justify-content: center; max-width: 800px; width: 100%; }
+    .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 280px; text-align: center; }
+    .avatar-circle { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #1e40af); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
+    .user-gender-tag { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+    .user-bio { font-size: 12px; color: var(--text-secondary); background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; width: 100%; word-break: break-all; min-height: 48px; }
 
-    /* 4. チャット */
-    #view-chat { display: grid; grid-template-columns: 1fr 280px; width: 100%; height: calc(100vh - 64px); }
-    .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; }
+    /* チャット */
+    #view-chat { display: grid; grid-template-columns: 1fr 280px; width: 100%; height: 100%; }
+    .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; }
     .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
     .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
@@ -117,86 +117,84 @@
       </div>
     </header>
 
-    <!-- 1. ダッシュボード画面 -->
-    <div id="view-dashboard" class="view-section active">
-      <section class="viewport-panel">
-        <h2 style="font-size:20px; font-weight:600;">1対1のセッションを開始</h2>
-        <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入る</button>
-      </section>
+    <main class="main-content">
+      <!-- 1. ダッシュボード画面 -->
+      <div id="view-dashboard" class="view-section active">
+        <section class="viewport-panel">
+          <h2 style="font-size:20px; font-weight:600;">1対1のセッションを開始</h2>
+          <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入る</button>
+        </section>
 
-      <aside class="sidebar-panel">
-        <div class="sidebar-header">現在接続中のユーザー</div>
-        <div class="sidebar-content" id="sidebar-users">
-          <div style="font-size:12px; color:var(--text-muted); text-align:center; padding-top:20px;">接続ユーザーを確認中...</div>
-        </div>
-      </aside>
-
-      <section class="threads-panel">
-        <div style="font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:12px;">アクティブスレッド</div>
-        <button class="btn-action-secondary" style="padding:10px 20px; font-size:13px;" onclick="openGroupChat('#映画ファン (120名)')">#映画ファン スレッドに参加</button>
-      </section>
-    </div>
-
-    <!-- 2. マッチング中画面 -->
-    <div id="view-matching" class="view-section">
-      <h2 style="font-size:24px; font-weight:600;">マッチング相手を探しています...</h2>
-      <p style="color:var(--text-secondary); font-size:14px;">誰かが「待機キューに入る」を押すと自動で接続されます。</p>
-      <div class="progress-circle">待機中</div>
-      <button class="btn-action-secondary" onclick="cancelMatchingQueue()" style="margin-top:20px;">キャンセル</button>
-    </div>
-
-    <!-- 3. マッチ成立画面（アバター・性別・プロフ追加） -->
-    <div id="view-matched" class="view-section">
-      <h2 style="font-size:26px; font-weight:700;">マッチしました！</h2>
-      <div class="match-cards">
-        <!-- 自分 -->
-        <div class="user-card">
-          <div class="avatar-circle" id="my-avatar-icon">YOU</div>
-          <div class="user-info-group">
-            <div class="user-card-name" id="my-display-name">あなた</div>
-            <div><span class="user-card-gender" id="my-gender-tag">男性</span></div>
-            <div class="user-card-bio" id="my-bio">暇つぶしにお話ししましょう！</div>
+        <aside class="sidebar-panel">
+          <div class="sidebar-header">現在接続中のユーザー</div>
+          <div class="sidebar-content" id="sidebar-users">
+            <div style="font-size:12px; color:var(--text-muted); text-align:center; padding-top:20px;">接続ユーザーを確認中...</div>
           </div>
-        </div>
+        </aside>
 
-        <div style="font-size:22px; font-weight:800; color:var(--accent-color);">VS</div>
-
-        <!-- 相手 -->
-        <div class="user-card">
-          <div class="avatar-circle" id="partner-avatar-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">USER</div>
-          <div class="user-info-group">
-            <div class="user-card-name" id="matched-user-name">相手ユーザー</div>
-            <div><span class="user-card-gender" id="partner-gender-tag" style="color:#f472b6; background:rgba(236,72,153,0.15); border-color:rgba(236,72,153,0.3);">未設定</span></div>
-            <div class="user-card-bio" id="partner-bio">よろしくお願いします！</div>
-          </div>
-        </div>
+        <section class="threads-panel">
+          <div style="font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:12px;">アクティブスレッド</div>
+          <button class="btn-action-secondary" style="padding:10px 20px; font-size:13px;" onclick="openGroupChat('#映画ファン (120名)')">#映画ファン スレッドに参加</button>
+        </section>
       </div>
-      <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを始める</button>
-    </div>
 
-    <!-- 4. チャット画面 -->
-    <div id="view-chat" class="view-section">
-      <div class="chat-main">
-        <div class="chat-header" id="chat-title">チャットルーム</div>
-        <div class="chat-messages" id="chat-messages">
-          <div class="message-item">
-            <span class="message-sender">System</span>
-            <div class="message-bubble">マッチングが成功しました！会話を始めてみましょう。</div>
+      <!-- 2. マッチング中画面 -->
+      <div id="view-matching" class="view-section">
+        <h2 style="font-size:24px; font-weight:600;">マッチング相手を探しています...</h2>
+        <p style="color:var(--text-secondary); font-size:14px;">誰かが「待機キューに入る」を押すと自動で接続されます。</p>
+        <div class="progress-circle">待機中</div>
+        <button class="btn-action-secondary" onclick="cancelMatchingQueue()" style="margin-top:20px;">キャンセル</button>
+      </div>
+
+      <!-- 3. マッチ成立画面 (プロフィール表示対応) -->
+      <div id="view-matched" class="view-section">
+        <h2 style="font-size:26px; font-weight:700;">マッチしました！</h2>
+        <div class="match-cards">
+          <!-- 自分のカード -->
+          <div class="user-card">
+            <div class="avatar-circle" id="my-avatar-circle">YOU</div>
+            <div style="font-weight:700;" id="my-display-name">あなた</div>
+            <span class="user-gender-tag" id="my-gender-tag">男性 / 20代</span>
+            <div class="user-bio" id="my-bio-text">よろしくお願いします！</div>
+          </div>
+
+          <div style="font-size:22px; font-weight:700; color:var(--accent-color);">VS</div>
+
+          <!-- 相手のカード -->
+          <div class="user-card">
+            <div class="avatar-circle" id="partner-avatar-circle">USER</div>
+            <div style="font-weight:700;" id="matched-user-name">相手ユーザー</div>
+            <span class="user-gender-tag" id="partner-gender-tag">未設定</span>
+            <div class="user-bio" id="partner-bio-text">暇なので話し相手募集中です！</div>
           </div>
         </div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
-          <button class="btn-action-primary" style="padding:0 24px;" onclick="sendMessage()">送信</button>
-          <button class="btn-action-secondary" onclick="leaveChat()" style="padding:0 16px;">退室</button>
-        </div>
+        <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを始める</button>
       </div>
-      <aside class="sidebar-panel" style="border-radius:0; border-top:none; border-bottom:none; border-right:none;">
-        <div class="sidebar-header">参加メンバー</div>
-        <div class="sidebar-content" id="chat-members">
-          <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">オンライン接続中</div>
+
+      <!-- 4. チャット画面 -->
+      <div id="view-chat" class="view-section">
+        <div class="chat-main">
+          <div class="chat-header" id="chat-title">チャットルーム</div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="message-item">
+              <span class="message-sender">System</span>
+              <div class="message-bubble">マッチングが成功しました！会話を始めてみましょう。</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn-action-primary" style="padding:0 24px;" onclick="sendMessage()">送信</button>
+            <button class="btn-action-secondary" onclick="leaveChat()" style="padding:0 16px;">退室</button>
+          </div>
         </div>
-      </aside>
-    </div>
+        <aside class="sidebar-panel" style="border-radius:0; border-top:none; border-bottom:none; border-right:none;">
+          <div class="sidebar-header">参加メンバー</div>
+          <div class="sidebar-content" id="chat-members">
+            <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">オンライン接続中</div>
+          </div>
+        </aside>
+      </div>
+    </main>
   </div>
 
   <script>
@@ -204,25 +202,26 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 自分の仮プロフィール設定
     const myUserId = 'user_' + Math.floor(Math.random() * 10000);
     const myUserName = 'Guest_' + myUserId.slice(-4);
-    const myGender = '男性';
-    const myBio = '暇つぶしにお話ししましょう！';
-
+    const myUserProfile = {
+      gender: '男性',
+      bio: '雑談・趣味の話歓迎です！'
+    };
+    
     let isMatchingState = false;
     let currentPartner = null;
 
     document.getElementById('my-display-name').innerText = myUserName;
-    document.getElementById('my-avatar-icon').innerText = myUserName.slice(-2);
-    document.getElementById('my-gender-tag').innerText = myGender;
-    document.getElementById('my-bio').innerText = myBio;
+    document.getElementById('my-avatar-circle').innerText = myUserName.slice(-2);
+    document.getElementById('my-gender-tag').innerText = myUserProfile.gender;
+    document.getElementById('my-bio-text').innerText = myUserProfile.bio;
 
     const room = supabaseClient.channel('global-room', {
       config: { broadcast: { self: true } }
     });
 
-    // リアルタイム Presence & マッチング同期
+    // リアルタイム同期 & マッチングロジック
     room.on('presence', { event: 'sync' }, () => {
       const state = room.presenceState();
       let userList = [];
@@ -253,7 +252,7 @@
         `).join('');
       }
 
-      // 待機者同士を自動マッチング
+      // マッチング判定
       if (isMatchingState && waitingUsers.length > 0 && !currentPartner) {
         const partner = waitingUsers[0];
         
@@ -265,30 +264,24 @@
             fromUser: {
               id: myUserId,
               name: myUserName,
-              gender: myGender,
-              bio: myBio
+              profile: myUserProfile
             }
           }
         });
 
-        triggerMatchSuccess(partner);
+        triggerMatchSuccess(partner.username, partner.user_id, partner.profile || {});
       }
     });
 
-    // マッチ成立シグナル受信
+    // マッチ成立通知の受信
     room.on('broadcast', { event: 'match_found' }, (payload) => {
       const data = payload.payload;
       if (data.targetUserId === myUserId && isMatchingState) {
-        triggerMatchSuccess({
-          user_id: data.fromUser.id,
-          username: data.fromUser.name,
-          gender: data.fromUser.gender,
-          bio: data.fromUser.bio
-        });
+        triggerMatchSuccess(data.fromUser.name, data.fromUser.id, data.fromUser.profile || {});
       }
     });
 
-    // チャットメッセージ受信
+    // メッセージ受信
     room.on('broadcast', { event: 'chat_message' }, (payload) => {
       const msgData = payload.payload;
       appendMessage(msgData.sender, msgData.text, msgData.senderId === myUserId);
@@ -305,8 +298,7 @@
       await room.track({
         user_id: myUserId,
         username: myUserName,
-        gender: myGender,
-        bio: myBio,
+        profile: myUserProfile,
         isMatching: isMatching,
         online_at: new Date().toISOString()
       });
@@ -322,16 +314,15 @@
       switchView('view-dashboard');
     }
 
-    // マッチ成功時に相手プロフィールを反映
-    function triggerMatchSuccess(partner) {
-      currentPartner = partner;
+    function triggerMatchSuccess(partnerName, partnerId, partnerProfile) {
+      currentPartner = { id: partnerId, name: partnerName, profile: partnerProfile };
       updatePresence(false);
 
-      document.getElementById('matched-user-name').innerText = partner.username;
-      document.getElementById('partner-avatar-icon').innerText = partner.username.slice(-2);
-      document.getElementById('partner-gender-tag').innerText = partner.gender || 'ゲスト';
-      document.getElementById('partner-bio').innerText = partner.bio || 'よろしくおねがいします！';
-
+      document.getElementById('matched-user-name').innerText = partnerName;
+      document.getElementById('partner-avatar-circle').innerText = partnerName.slice(-2);
+      document.getElementById('partner-gender-tag').innerText = partnerProfile.gender || '未設定';
+      document.getElementById('partner-bio-text').innerText = partnerProfile.bio || '暇なので話し相手募集中です！';
+      
       switchView('view-matched');
     }
 
@@ -375,7 +366,7 @@
     }
 
     function openDirectChat() {
-      const name = currentPartner ? currentPartner.username : '相手';
+      const name = currentPartner ? currentPartner.name : '相手';
       document.getElementById('chat-title').innerText = `${name} とのチャット`;
       switchView('view-chat');
     }
