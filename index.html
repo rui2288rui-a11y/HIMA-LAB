@@ -162,7 +162,7 @@
 
   <div id="canvas-container"></div>
 
-  <!-- 1. プロフィール設定・変更モーダル（性別選択＆規約同意付き） -->
+  <!-- 1. プロフィール設定・変更モーダル（規約同意必須化） -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
       <div style="font-size:18px; font-weight:700; text-align:center; color:var(--text-primary);" id="profile-modal-title">HIMA-LABへようこそ</div>
@@ -205,10 +205,10 @@
         <textarea id="init-bio" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:10px 14px; color:var(--text-primary); height:50px; resize:none; font-size:14px; outline:none;" placeholder="今の気分や趣味を気軽にどうぞ" maxlength="60"></textarea>
       </div>
 
-      <!-- 初回のみ表示する規約同意チェック -->
-      <div id="terms-agree-container" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary);">
+      <!-- 初回のみ表示する規約同意チェック（必須） -->
+      <div id="terms-agree-container" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); background:var(--input-bg); padding:10px; border-radius:10px; border:1px solid var(--panel-border);">
         <input type="checkbox" id="chk-terms" style="width:16px; height:16px; accent-color:var(--accent-color); cursor:pointer;">
-        <label for="chk-terms" style="cursor:pointer;"><a onclick="openInfoModal('terms'); event.stopPropagation();" style="color:var(--accent-color); text-decoration:underline;">利用規約</a> および <a onclick="openInfoModal('safety'); event.stopPropagation();" style="color:var(--accent-color); text-decoration:underline;">安心ガイドライン</a> に同意します</label>
+        <label for="chk-terms" style="cursor:pointer; line-height:1.4;"><a onclick="openInfoModal('terms'); event.stopPropagation();" style="color:var(--accent-color); text-decoration:underline;">利用規約</a> および <a onclick="openInfoModal('safety'); event.stopPropagation();" style="color:var(--accent-color); text-decoration:underline;">安心ガイドライン</a> を必ず読み、内容に同意します</label>
       </div>
 
       <button class="btn-action-primary" style="margin-top:2px;" onclick="saveInitialProfile()">プロフィールを決定して参加する</button>
@@ -552,18 +552,17 @@
       document.getElementById('init-username').value = myUserName || '';
       document.getElementById('init-bio').value = myBio || '';
 
-      // 性別選択状態の復元
       document.querySelectorAll('.gender-option').forEach(g => {
         if (g.innerText === myGender) g.classList.add('selected');
         else g.classList.remove('selected');
       });
 
-      // 初回登録時以外は規約同意チェックを非表示
       const termsContainer = document.getElementById('terms-agree-container');
       if (isProfileInitialized) {
         termsContainer.style.display = 'none';
       } else {
         termsContainer.style.display = 'flex';
+        document.getElementById('chk-terms').checked = false;
       }
 
       modal.style.display = 'flex';
@@ -575,7 +574,7 @@
 
       if (!isProfileInitialized) {
         const agreed = document.getElementById('chk-terms').checked;
-        if (!agreed) { alert('利用規約および安心ガイドラインへの同意が必要です'); return; }
+        if (!agreed) { alert('利用規約および安心ガイドラインを読み、同意チェックを入れてください。'); return; }
       }
 
       myUserName = name;
@@ -598,7 +597,7 @@
 
     let room;
     function initRealtime() {
-      room = supabaseClient.channel('global-room', { config: { broadcast: { self: true } } });
+      room = supabaseClient.channel('global-room-v2', { config: { broadcast: { self: true } } });
 
       room.on('presence', { event: 'sync' }, () => {
         const state = room.presenceState();
