@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CONNECT-X | リアルタイムコミュニティ</title>
+  <title>CONNECT-X | リアルタイムチャット</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
@@ -16,32 +16,73 @@
       --accent-blue: #00f2fe;
       --accent-green: #10b981;
       --accent-grad: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      --msg-me: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      --msg-other: #1e293b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; }
+    [data-theme="light"] {
+      --bg-dark: #f1f5f9;
+      --bg-card: #ffffff;
+      --border-color: rgba(0, 0, 0, 0.1);
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --accent-blue: #0284c7;
+      --accent-green: #059669;
+      --accent-grad: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      --msg-me: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      --msg-other: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; transition: background 0.2s, color 0.2s; }
     body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
     header {
-      height: 64px; background: rgba(21, 28, 44, 0.8); border-bottom: 1px solid var(--border-color);
-      display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+      height: 64px; background: var(--bg-card); border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10;
     }
     .logo { font-size: 20px; font-weight: 900; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .online-badge { font-size: 13px; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .btn-sm { background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; }
+    .online-badge { font-size: 13px; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: bold; }
 
+    /* ダッシュボードレイアウト */
     .dashboard-container {
-      flex: 1; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: 1fr 220px;
+      flex: 1; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: 1fr 230px;
       gap: 16px; padding: 16px 24px; height: calc(100vh - 64px);
+    }
+
+    /* 重複タブ警告ロック画面 */
+    .lock-overlay {
+      position: absolute; inset: 0; background: rgba(11, 15, 25, 0.95); z-index: 999;
+      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 20px;
     }
 
     /* メインエリア */
     .main-area {
       grid-column: 1 / 2; grid-row: 1 / 2; background: var(--bg-card);
       border: 1px solid var(--border-color); border-radius: 16px; padding: 24px;
-      display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center;
+      display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; position: relative; overflow: hidden;
     }
-    .btn-main { padding: 14px 28px; background: var(--accent-grad); border: none; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
+    .btn-main { padding: 14px 28px; background: var(--accent-grad); border: none; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,242,254,0.2); }
 
-    /* サイドバー：マッチング待機リスト */
+    /* リアルタイムチャット UI */
+    .chat-container { width: 100%; height: 100%; display: none; flex-direction: column; }
+    .chat-header { padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    
+    .msg-group { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
+    .msg-group.me { align-self: flex-end; align-items: flex-end; }
+    .msg-group.other { align-self: flex-start; align-items: flex-start; }
+    .msg-sender { font-size: 11px; color: var(--text-sub); }
+    .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 14px; word-break: break-all; }
+    .msg-group.me .msg-bubble { background: var(--msg-me); color: #fff; border-bottom-right-radius: 2px; }
+    .msg-group.other .msg-bubble { background: var(--msg-other); color: var(--text-main); border-bottom-left-radius: 2px; }
+    .msg-media { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 4px; }
+
+    .chat-input-bar { padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; align-items: center; }
+    .chat-input-bar input[type="text"] { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 14px; border-radius: 20px; outline: none; }
+
+    /* サイドバー */
     .sidebar-area {
       grid-column: 2 / 3; grid-row: 1 / 3; background: var(--bg-card);
       border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;
@@ -49,36 +90,57 @@
     .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border-color); }
     .category-tabs { display: flex; background: var(--bg-dark); padding: 4px; border-radius: 8px; gap: 4px; margin-top: 8px; }
     .tab-btn { flex: 1; padding: 6px 0; background: transparent; border: none; color: var(--text-sub); font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; }
-    .tab-btn.active { background: #1e293b; color: var(--text-main); }
-    
+    .tab-btn.active { background: var(--bg-card); color: var(--text-main); }
     .user-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); }
+    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); }
 
-    /* 下部：スレッドエリア */
+    /* 下部スレッド */
     .threads-area {
       grid-column: 1 / 2; grid-row: 2 / 3; background: var(--bg-card);
       border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;
     }
     .threads-scroll-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
-    .thread-card { min-width: 180px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; flex-shrink: 0; }
-    .btn-create-thread { min-width: 100px; background: rgba(255, 255, 255, 0.03); border: 2px dashed var(--border-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text-sub); cursor: pointer; flex-shrink: 0; }
+    .thread-card { min-width: 200px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; flex-shrink: 0; }
+    .btn-create-thread { min-width: 110px; background: rgba(255, 255, 255, 0.03); border: 2px dashed var(--border-color); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); cursor: pointer; flex-shrink: 0; font-weight: bold; }
   </style>
 </head>
-<body>
+<body data-theme="dark">
+
+  <div class="lock-overlay" id="lockOverlay">
+    <h2>⚠️ 別のタブで接続されています</h2>
+    <p style="color: var(--text-sub); font-size: 14px;">同一ブラウザ内での多重接続を防ぐため、このタブは無効化されました。</p>
+    <button class="btn-sm" onclick="location.reload()">このタブで再接続する</button>
+  </div>
 
   <header>
     <div class="logo">CONNECT-X</div>
-    <div class="online-badge" id="onlineCount">🟢 0人 オンライン</div>
+    <div class="header-right">
+      <button class="btn-sm" onclick="toggleTheme()">🌙/☀️</button>
+      <div class="online-badge" id="onlineCount">🟢 0人 オンライン</div>
+    </div>
   </header>
 
   <div class="dashboard-container">
-    <!-- メイン操作部 -->
     <section class="main-area">
-      <h2 id="myStatusText">1対1のマッチングを開始しますか？</h2>
-      <button class="btn-main" id="matchToggleBtn" onclick="toggleMatching()">🤝 1対1を探す</button>
+      <div id="matchLobby" style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+        <h2 id="myStatusText">1対1のマッチングを開始しますか？</h2>
+        <button class="btn-main" id="matchToggleBtn" onclick="toggleMatching()">🤝 1対1を探す</button>
+      </div>
+
+      <div class="chat-container" id="chatArea">
+        <div class="chat-header">
+          <span id="chatTitle" style="font-weight:bold;">🟢 通信中...</span>
+          <button class="btn-sm" style="color:#ef4444;" onclick="leaveChat()">退出する</button>
+        </div>
+        <div class="chat-messages" id="chatBox"></div>
+        <div class="chat-input-bar">
+          <label style="cursor:pointer; font-size:20px;">📁<input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;" onchange="uploadMedia(event)"></label>
+          <input type="text" id="msgInput" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter')sendTextMessage()">
+          <button class="btn-sm" style="background:var(--accent-grad); color:white;" onclick="sendTextMessage()">送信</button>
+        </div>
+      </div>
     </section>
 
-    <!-- 待機中ユーザーリスト -->
     <aside class="sidebar-area">
       <div class="sidebar-header">
         <div style="font-weight: bold; font-size: 14px;">マッチ待機中のユーザー</div>
@@ -88,16 +150,16 @@
           <button class="tab-btn" onclick="filterGender('男性')">男性</button>
         </div>
       </div>
-      <div class="user-list" id="waitingUserList">
-        <!-- リアルタイムで追加・削除される -->
-      </div>
+      <div class="user-list" id="waitingUserList"></div>
     </aside>
 
-    <!-- グループスレッド -->
     <section class="threads-area">
-      <div style="font-weight: bold; font-size: 14px;">アクティブなスレッド</div>
+      <div style="font-weight: bold; font-size: 14px;">🔥 人気のスレッド（最大20人）</div>
       <div class="threads-scroll-container" id="threadList">
-        <button class="btn-create-thread" onclick="createNewThread()">＋ 新規スレッド</button>
+        <button class="btn-create-thread" onclick="createNewThread()">
+          <span style="font-size:18px;">＋</span>
+          <span style="font-size:11px;">スレッド作成</span>
+        </button>
       </div>
     </section>
   </div>
@@ -107,46 +169,69 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const myId = 'usr_' + Math.random().toString(36).substring(2, 7);
+    // 同一人物の判定とタブ重複防止（LocalStorage + SessionStorage）
+    let userGuid = localStorage.getItem('connectx_guid');
+    if (!userGuid) {
+      userGuid = 'usr_' + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('connectx_guid', userGuid);
+    }
+
+    const tabId = 'tab_' + Math.random().toString(36).substring(2, 7);
+    sessionStorage.setItem('connectx_tab_id', tabId);
+    localStorage.setItem('connectx_active_tab', tabId);
+
     const myGender = Math.random() > 0.5 ? '男性' : '女性';
-    const myName = `ユーザー_${myId.substr(-4)}`;
-    
+    const myName = `ユーザー_${userGuid.substr(-4)}`;
+
     let isMatching = false;
+    let currentRoomId = null;
     let globalChannel = null;
+    let roomChannel = null;
     let currentFilter = 'all';
 
-    // 1. 全体接続とオンライン人数・待機リスト管理
+    // テーマ切替
+    function toggleTheme() {
+      const b = document.body;
+      b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    // 重複接続の常時監視
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'connectx_active_tab' && e.newValue !== tabId) {
+        document.getElementById('lockOverlay').style.display = 'flex';
+        if (globalChannel) globalChannel.unsubscribe();
+      }
+    });
+
+    // システム初期化
     function initSystem() {
-      globalChannel = supabaseClient.channel('global_lobby', { config: { presence: { key: myId } } });
+      globalChannel = supabaseClient.channel('global_lobby', { config: { presence: { key: userGuid } } });
 
       globalChannel.on('presence', { event: 'sync' }, () => {
         const state = globalChannel.presenceState();
         const allUsers = Object.values(state).flat();
-        
-        // 全体のオンライン人数を更新
+
         document.getElementById('onlineCount').innerText = `🟢 ${allUsers.length}人 オンライン`;
 
-        // マッチング待機中のユーザーのみをリストアップ
-        const waitingUsers = allUsers.filter(u => u.isWaiting && u.id !== myId);
+        const waitingUsers = allUsers.filter(u => u && u.isWaiting && u.id !== userGuid);
         renderWaitingUsers(waitingUsers);
 
-        // マッチングの自動判定（自分が待機中で、他に待機者がいる場合）
+        // マッチング判定（自分と相手のペアリング）
         if (isMatching && waitingUsers.length > 0) {
           const partner = waitingUsers[0];
-          alert(`${partner.name} (${partner.gender}) さんとマッチしました！`);
-          stopMatching();
+          const room = [userGuid, partner.id].sort().join('_match_');
+          startChatRoom(room, `💬 ${partner.name} さんとの個室`);
         }
       }).subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await globalChannel.track({ id: myId, name: myName, gender: myGender, isWaiting: false });
+          await globalChannel.track({ id: userGuid, name: myName, gender: myGender, isWaiting: false });
         }
       });
 
-      loadThreads();
-      subscribeThreads();
+      loadThreadsPopular();
     }
 
-    // 2. マッチング待機トグル
+    // マッチング待機処理
     async function toggleMatching() {
       isMatching = !isMatching;
       const btn = document.getElementById('matchToggleBtn');
@@ -160,7 +245,7 @@
         stopMatching();
       }
 
-      await globalChannel.track({ id: myId, name: myName, gender: myGender, isWaiting: isMatching });
+      await globalChannel.track({ id: userGuid, name: myName, gender: myGender, isWaiting: isMatching });
     }
 
     function stopMatching() {
@@ -172,7 +257,104 @@
       text.innerText = "1対1のマッチングを開始しますか？";
     }
 
-    // 3. 待機中ユーザーリストの描写
+    // チャット画面の切り替えとメッセージ読込
+    async function startChatRoom(roomId, title) {
+      stopMatching();
+      await globalChannel.track({ id: userGuid, name: myName, gender: myGender, isWaiting: false });
+
+      currentRoomId = roomId;
+      document.getElementById('matchLobby').style.display = 'none';
+      document.getElementById('chatArea').style.display = 'flex';
+      document.getElementById('chatTitle').innerText = title;
+      document.getElementById('chatBox').innerHTML = '';
+
+      // 過去メッセージの読込
+      const { data } = await supabaseClient.from('messages').select('*').eq('room_id', currentRoomId).order('id', { ascending: true });
+      if (data) data.forEach(renderMessage);
+
+      // リアルタイム購読（メッセージ・画像・動画の即時反映）
+      if (roomChannel) roomChannel.unsubscribe();
+      roomChannel = supabaseClient.channel(`room_${currentRoomId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoomId}` }, payload => {
+          renderMessage(payload.new);
+        }).subscribe();
+    }
+
+    function leaveChat() {
+      if (roomChannel) roomChannel.unsubscribe();
+      currentRoomId = null;
+      document.getElementById('chatArea').style.display = 'none';
+      document.getElementById('matchLobby').style.display = 'flex';
+    }
+
+    // メッセージ（テキスト・メディア）の描画
+    function renderMessage(msg) {
+      const box = document.getElementById('chatBox');
+      const isMe = msg.sender_id === userGuid;
+
+      const group = document.createElement('div');
+      group.className = `msg-group ${isMe ? 'me' : 'other'}`;
+
+      let contentHtml = '';
+      if (msg.content) contentHtml += `<div>${msg.content}</div>`;
+      if (msg.media_url) {
+        if (msg.media_type === 'video') {
+          contentHtml += `<video src="${msg.media_url}" controls class="msg-media"></video>`;
+        } else {
+          contentHtml += `<img src="${msg.media_url}" class="msg-media"/>`;
+        }
+      }
+
+      group.innerHTML = `
+        <span class="msg-sender">${msg.sender_name}</span>
+        <div class="msg-bubble">${contentHtml}</div>
+      `;
+
+      box.appendChild(group);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // テキスト送信
+    async function sendTextMessage() {
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (!text || !currentRoomId) return;
+
+      input.value = '';
+      await supabaseClient.from('messages').insert([{
+        room_id: currentRoomId,
+        sender_id: userGuid,
+        sender_name: myName,
+        content: text
+      }]);
+    }
+
+    // 画像・動画の送信
+    async function uploadMedia(e) {
+      const file = e.target.files[0];
+      if (!file || !currentRoomId) return;
+
+      const isVideo = file.type.startsWith('video/');
+      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2,4)}.${file.name.split('.').pop()}`;
+
+      const { data, error } = await supabaseClient.storage.from('chat-media').upload(fileName, file);
+      if (error) {
+        alert("ストレージアップロード失敗: chat-mediaバケットの設定を確認してください");
+        return;
+      }
+
+      const { data: pub } = supabaseClient.storage.from('chat-media').getPublicUrl(fileName);
+
+      await supabaseClient.from('messages').insert([{
+        room_id: currentRoomId,
+        sender_id: userGuid,
+        sender_name: myName,
+        media_url: pub.publicUrl,
+        media_type: isVideo ? 'video' : 'image'
+      }]);
+    }
+
+    // 待機中ユーザーリスト表示
     function renderWaitingUsers(users) {
       const listEl = document.getElementById('waitingUserList');
       listEl.innerHTML = '';
@@ -192,7 +374,7 @@
             <div style="font-weight:bold; font-size:13px;">${u.name}</div>
             <div style="font-size:10px; color:var(--text-sub);">${u.gender}</div>
           </div>
-          <span style="font-size:10px; color:var(--accent-green);">待機中</span>
+          <span style="font-size:10px; color:var(--accent-green); font-weight:bold;">待機中</span>
         `;
         listEl.appendChild(item);
       });
@@ -203,18 +385,16 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
       const state = globalChannel.presenceState();
-      const waitingUsers = Object.values(state).flat().filter(u => u.isWaiting && u.id !== myId);
+      const waitingUsers = Object.values(state).flat().filter(u => u && u.isWaiting && u.id !== userGuid);
       renderWaitingUsers(waitingUsers);
     }
 
-    // 4. スレッド機能（DB連携）
-    async function loadThreads() {
-      const { data } = await supabaseClient.from('threads').select('*').order('id', { ascending: false });
-      if (data) {
-        const container = document.getElementById('threadList');
-        container.innerHTML = `<button class="btn-create-thread" onclick="createNewThread()">＋ 新規スレッド</button>`;
-        data.forEach(renderThreadCard);
-      }
+    // スレッド読み込み
+    async function loadThreadsPopular() {
+      const { data } = await supabaseClient.from('threads').select('*').order('member_count', { ascending: false });
+      const container = document.getElementById('threadList');
+      container.innerHTML = `<button class="btn-create-thread" onclick="createNewThread()"><span style="font-size:18px;">＋</span><span style="font-size:11px;">スレッド作成</span></button>`;
+      if (data) data.forEach(renderThreadCard);
     }
 
     function renderThreadCard(t) {
@@ -222,27 +402,18 @@
       const card = document.createElement('div');
       card.className = 'thread-card';
       card.innerHTML = `
-        <div style="font-size:20px;">💬</div>
+        <div style="font-size:11px; color:var(--accent-green); font-weight:bold;">👥 ${t.member_count || 1} / ${t.max_members || 20}人</div>
         <div style="font-weight:bold; font-size:13px; margin-top:4px;">${t.title}</div>
-        <div style="font-size:10px; color:var(--accent-blue); margin-top:4px;">${t.tags ? t.tags.join(' ') : ''}</div>
+        <button onclick="startChatRoom('thread_${t.id}', '🔊 ${t.title}')" style="margin-top:8px; padding:4px 8px; font-size:11px; border-radius:6px; border:none; background:var(--accent-grad); color:white; font-weight:bold; cursor:pointer;">チャットを開く</button>
       `;
       container.appendChild(card);
     }
 
     async function createNewThread() {
-      const title = prompt("スレッドのタイトルを入力してください:");
+      const title = prompt("スレッド名を入力してください:");
       if (!title) return;
-      const tagInput = prompt("タグをカンマ区切りで入力（例: アニメ,雑談）:");
-      const tags = tagInput ? tagInput.split(',').map(t => `#${t.trim()}`) : [];
-
-      await supabaseClient.from('threads').insert([{ title, tags }]);
-    }
-
-    function subscribeThreads() {
-      supabaseClient.channel('public:threads')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'threads' }, payload => {
-          loadThreads();
-        }).subscribe();
+      await supabaseClient.from('threads').insert([{ title, member_count: 1, max_members: 20 }]);
+      loadThreadsPopular();
     }
 
     window.onload = initSystem;
