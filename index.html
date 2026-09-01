@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Resonance Chat - Realtime Community</title>
+  <!-- Security patch v1: XSS-safe rendering, stable local identity, safer media handling. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -352,7 +353,7 @@
         <div class="chat-input-area">
           <label for="media-upload-input" class="btn-action-secondary" style="padding:10px 14px; font-size:14px; cursor:pointer;" title="画像・動画を送信">📷/🎥</label>
           <input type="file" id="media-upload-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaUpload(event)">
-          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." oninput="handleTypingInput()" onkeypress="if(event.key==='Enter') sendMessage()">
+          <input type="text" id="chat-input" class="chat-input" maxlength="500" placeholder="メッセージを入力..." oninput="handleTypingInput()" onkeypress="if(event.key==='Enter') sendMessage()">
           <button class="btn-action-primary" style="padding:12px 20px;" onclick="sendMessage()">送信</button>
         </div>
       </div>
@@ -372,7 +373,7 @@
       <a onclick="openInfoModal('privacy')">プライバシーポリシー</a>
       <span class="sep">|</span>
       <a onclick="openInfoModal('company')">運営情報</a>
-      <span style="margin-left: auto; opacity: 0.7;">© 2026 Resonance Chat Inc.</span>
+      <span style="margin-left: auto; opacity: 0.7;">© 2026 Resonance Chat</span>
     </footer>
   </div>
 
@@ -387,12 +388,18 @@
       localStorage.setItem('resonance_device_id', myDeviceId);
     }
 
-    const myUserId = 'user_' + Math.floor(Math.random() * 100000);
-    let myUserName = '';
-    let myAvatar = '✨';
-    let myGender = '男性';
-    let myBio = '';
-    let isProfileInitialized = false;
+    let myUserId = localStorage.getItem('resonance_user_id');
+    if (!myUserId) {
+      myUserId = 'user_' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now());
+      localStorage.setItem('resonance_user_id', myUserId);
+    }
+
+    const savedProfile = JSON.parse(localStorage.getItem('resonance_profile') || 'null');
+    let myUserName = savedProfile?.name || '';
+    let myAvatar = savedProfile?.avatar || '✨';
+    let myGender = savedProfile?.gender || '男性';
+    let myBio = savedProfile?.bio || '';
+    let isProfileInitialized = Boolean(savedProfile?.name);
 
     let onlineUsers = [];
     let activeChatUserIds = [];
@@ -420,6 +427,21 @@
       'えっち', 'エッチ', 'アダルト', '下着', '裸',
       '詐欺', 'お金', '副業', '稼げる'
     ];
+
+    function escapeHTML(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function safeMediaUrl(url, type) {
+      if (typeof url !== 'string') return '';
+      const prefix = type === 'image' ? /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i : /^data:video\/(mp4|webm|ogg);base64,/i;
+      return prefix.test(url) ? url : '';
+    }
 
     function containsNgWord(text) {
       if (!text) return false;
@@ -469,7 +491,7 @@
         title.innerText = '🛡️ 安心・安全ガイドライン';
         body.innerHTML = `
           <strong>【快適なコミュニケーションのために】</strong><br>
-          Resonance Chatは、すべてのユーザーの皆様がリラックスして日常の雑談や交流を楽しめる空間づくりを目指しています。不適切な表現や出会い目的の利用は自動システムで制限されており、女性や10代の方も安心してご利用いただけます。<br><br>
+          Resonance Chatは、すべてのユーザーの皆様がリラックスして日常の雑談や交流を楽しめる空間づくりを目指しています。不適切な表現や出会い目的の利用は自動システムで制限されており、知らない人との交流にはリスクがあります。年齢や立場にかかわらず、個人情報を送らない・不審な相手をブロックするなど、自分の安全を優先してください。<br><br>
           <strong>【自動NGワード判定システム稼働中】</strong><br>
           暴言、誹謗中傷、外部連絡先の交換誘導、不適切な表現が含まれるメッセージやユーザーネームは、システムによって自動的に送信・使用が拒否されます。
         `;
@@ -494,7 +516,7 @@
         title.innerText = '運営情報';
         body.innerHTML = `
           <strong>サービス名：</strong> Resonance Chat Realtime Community<br>
-          <strong>お問い合わせ：</strong> support@resonance-chat.example
+          <strong>お問い合わせ：</strong> 現在準備中
         `;
       }
       modal.style.display = 'flex';
@@ -523,7 +545,16 @@
       document.body.className = `mode-${mode} theme-${currentTheme}`;
       document.getElementById('mode-toggle-btn').innerText = mode === 'mobile' ? '💻 PC表示' : '📱 スマホ表示';
     }
-    window.addEventListener('load', autoDetectDevice);
+    window.addEventListener('load', () => {
+      autoDetectDevice();
+      if (isProfileInitialized) {
+        document.getElementById('init-username').value = myUserName;
+        document.getElementById('init-bio').value = myBio;
+        document.querySelectorAll('.gender-option').forEach(g => {
+          g.classList.toggle('selected', g.innerText === myGender);
+        });
+      }
+    });
 
     function selectPresetAvatar(avatar, el) {
       myAvatar = avatar;
@@ -535,6 +566,16 @@
     function handleAvatarUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('画像ファイルを選択してください。');
+        e.target.value = '';
+        return;
+      }
+      if (file.size > 120 * 1024) {
+        alert('アバター画像は120KB以下にしてください。');
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = function(evt) {
         myAvatar = evt.target.result;
@@ -606,6 +647,9 @@
 
       myUserName = name;
       myBio = bio;
+      localStorage.setItem('resonance_profile', JSON.stringify({
+        name: myUserName, avatar: myAvatar, gender: myGender, bio: myBio
+      }));
 
       document.getElementById('header-badge-avatar').innerHTML = renderAvatarHTML(myAvatar, '24px');
       document.getElementById('header-badge-name').innerText = myUserName;
@@ -805,11 +849,11 @@
             <div style="display:flex; align-items:center; gap:10px;">
               ${renderAvatarHTML(u.avatar, '36px')}
               <div>
-                <div style="font-size:13px; font-weight:700;">${u.username} <span style="font-size:10px; font-weight:normal; color:var(--text-muted);">(${u.gender || '非公開'})</span></div>
-                <div style="font-size:11px; color:var(--text-muted);">${u.bio || '自己紹介なし'}</div>
+                <div style="font-size:13px; font-weight:700;">${escapeHTML(u.username)} <span style="font-size:10px; font-weight:normal; color:var(--text-muted);">(${escapeHTML(u.gender || '非公開')})</span></div>
+                <div style="font-size:11px; color:var(--text-muted);">${escapeHTML(u.bio || '自己紹介なし')}</div>
               </div>
             </div>
-            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', '${u.username}')">遮断</button>` : `<span style="font-size:11px; color:var(--danger-color);">ブロック済</span>`}
+            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'))">遮断</button>` : `<span style="font-size:11px; color:var(--danger-color);">ブロック済</span>`}
           </div>
         `;
       }).join('');
@@ -838,7 +882,7 @@
     }
 
     function sendChatRequest() {
-      if (!selectedTargetUser) return;
+      if (!room || !selectedTargetUser) return;
       document.getElementById('request-target-name').innerText = selectedTargetUser.username;
       document.getElementById('modal-requesting').style.display = 'flex';
 
@@ -861,6 +905,7 @@
     }
 
     function respondChatRequest(accepted) {
+      if (!room) return;
       document.getElementById('modal-incoming-request').style.display = 'none';
       if (!pendingIncomingReq) return;
 
@@ -901,10 +946,10 @@
       document.getElementById('chat-partner-info').innerHTML = `
         <div style="text-align:center; padding:20px 0; display:flex; flex-direction:column; align-items:center; gap:10px;">
           ${renderAvatarHTML(currentPartner.avatar, '64px')}
-          <div style="font-weight:700; font-size:16px;">${currentPartner.name}</div>
-          <div style="font-size:11px; padding:2px 10px; background:var(--panel-border); border-radius:10px; color:var(--text-secondary);">性別: ${currentPartner.gender || '非公開'}</div>
-          <div style="font-size:12px; color:var(--text-secondary); max-width:220px; line-height:1.5;">${currentPartner.bio || '自己紹介なし'}</div>
-          <button class="btn-action-danger" style="margin-top:16px;" onclick="blockUser('${currentPartner.id}', '${currentPartner.name}')">🚫 相手をブロック</button>
+          <div style="font-weight:700; font-size:16px;">${escapeHTML(currentPartner.name)}</div>
+          <div style="font-size:11px; padding:2px 10px; background:var(--panel-border); border-radius:10px; color:var(--text-secondary);">性別: ${escapeHTML(currentPartner.gender || '非公開')}</div>
+          <div style="font-size:12px; color:var(--text-secondary); max-width:220px; line-height:1.5;">${escapeHTML(currentPartner.bio || '自己紹介なし')}</div>
+          <button class="btn-action-danger" style="margin-top:16px;" onclick="blockUser('${currentPartner.id}', decodeURIComponent('${encodeURIComponent(currentPartner.name || '')}'))">🚫 相手をブロック</button>
         </div>
       `;
       switchView('view-chat');
@@ -947,10 +992,16 @@
       }, 1500);
     }
 
+    let lastMessageSentAt = 0;
     function sendMessage() {
+      if (!room || !currentPartner) return;
+      const now = Date.now();
+      if (now - lastMessageSentAt < 700) { alert('送信が速すぎます。少し待ってください。'); return; }
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
       if (!text) return;
+      if (text.length > 500) { alert('メッセージは500文字以内にしてください。'); return; }
+      lastMessageSentAt = now;
 
       // チャットメッセージの自動NGワード判定
       if (containsNgWord(text)) {
@@ -980,10 +1031,32 @@
       const file = e.target.files[0];
       if (!file) return;
 
+      // Realtime Broadcast is not a file-storage system. Large data URLs can exceed
+      // Supabase's payload limits, so this temporary version only permits small files.
+      const MAX_MEDIA_BYTES = 150 * 1024;
+      if (file.size > MAX_MEDIA_BYTES) {
+        alert('画像・動画は150KB以下にしてください。大きなファイル送信は次のアップデートで対応します。');
+        e.target.value = '';
+        return;
+      }
+
       const isVideo = file.type.startsWith('video/');
+      const allowedImage = ['image/png','image/jpeg','image/gif','image/webp'].includes(file.type);
+      const allowedVideo = ['video/mp4','video/webm','video/ogg'].includes(file.type);
+      if ((!isVideo && !allowedImage) || (isVideo && !allowedVideo)) {
+        alert('対応していないファイル形式です。');
+        e.target.value = '';
+        return;
+      }
+
       const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
       const reader = new FileReader();
       reader.onload = function(evt) {
+        const mediaUrl = String(evt.target.result || '');
+        if (!safeMediaUrl(mediaUrl, isVideo ? 'video' : 'image')) {
+          alert('安全のため、このファイルは送信できません。');
+          return;
+        }
         room.send({
           type: 'broadcast',
           event: 'chat_message',
@@ -991,7 +1064,7 @@
             msgId: msgId,
             sender: myUserName,
             senderId: myUserId,
-            mediaUrl: evt.target.result,
+            mediaUrl: mediaUrl,
             type: isVideo ? 'video' : 'image'
           }
         });
@@ -1029,11 +1102,13 @@
 
       let content = '';
       if (data.type === 'image') {
-        content = `<img src="${data.mediaUrl}" class="chat-media-preview">`;
+        const mediaUrl = safeMediaUrl(data.mediaUrl, 'image');
+        content = mediaUrl ? `<img src="${mediaUrl}" class="chat-media-preview" alt="送信された画像">` : '<span>安全のため画像を表示できません</span>';
       } else if (data.type === 'video') {
-        content = `<video src="${data.mediaUrl}" class="chat-media-preview" controls></video>`;
+        const mediaUrl = safeMediaUrl(data.mediaUrl, 'video');
+        content = mediaUrl ? `<video src="${mediaUrl}" class="chat-media-preview" controls playsinline></video>` : '<span>安全のため動画を表示できません</span>';
       } else {
-        content = data.text;
+        content = escapeHTML(data.text);
       }
 
       const unsendBtnHTML = isSelf ? `<button class="btn-unsend" onclick="unsendMessage('${data.msgId}')">取り消し</button>` : '';
@@ -1054,7 +1129,7 @@
       const container = document.getElementById('chat-messages');
       const sysDiv = document.createElement('div');
       sysDiv.className = 'message-item system';
-      sysDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+      sysDiv.innerHTML = `<div class="message-bubble">${escapeHTML(text)}</div>`;
       container.appendChild(sysDiv);
       container.scrollTop = container.scrollHeight;
     }
@@ -1169,7 +1244,7 @@
 
       setupPeerConnection();
 
-      await peerConnection.setRemoteDescription(new RTCIceDescription(pendingCallSignal.sdp));
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingCallSignal.sdp));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
 
@@ -1230,6 +1305,14 @@
       document.getElementById('local-video').srcObject = null;
       document.getElementById('remote-video').srcObject = null;
     }
+
+    window.addEventListener('beforeunload', () => {
+      try {
+        if (room) room.untrack();
+        if (peerConnection) peerConnection.close();
+        if (localStream) localStream.getTracks().forEach(track => track.stop());
+      } catch (e) {}
+    });
 
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
