@@ -14,20 +14,22 @@
     .logo { font-weight: bold; font-size: 18px; color: #38bdf8; letter-spacing: 1px; }
     .online-count { font-size: 12px; color: #4ade80; background: rgba(74, 222, 128, 0.1); padding: 4px 8px; border-radius: 12px; border: 1px solid rgba(74, 222, 128, 0.2); }
 
-    /* プロフィール設定・トップ画面 */
-    .home-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; gap: 16px; overflow-y: auto; }
-    .home-title { font-size: 22px; font-weight: bold; }
+    /* 設定・マッチング待ち画面 */
+    .screen { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; gap: 16px; overflow-y: auto; text-align: center; }
     .profile-box { width: 100%; background: #0f172a; padding: 20px; border-radius: 16px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 14px; }
     
     .input-group { display: flex; flex-direction: column; gap: 6px; text-align: left; }
     .input-group label { font-size: 13px; color: #94a3b8; }
     .input-group input[type="text"], .input-group select { background: #1e293b; border: 1px solid #334155; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; }
-    
     .avatar-preview { width: 60px; height: 60px; border-radius: 50%; background: #334155; object-fit: cover; margin: 0 auto; display: block; }
     
     .menu-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .btn-primary { background: #0284c7; color: white; margin-top: 8px; }
     .btn-primary:hover { background: #0369a1; }
+
+    /* マッチングアニメーション */
+    .spinner { width: 40px; height: 40px; border: 4px solid #334155; border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* チャット画面 */
     .chat-screen { flex: 1; display: none; flex-direction: column; height: 100%; overflow: hidden; }
@@ -45,7 +47,6 @@
     .msg { background: #334155; padding: 10px 14px; border-radius: 4px 16px 16px 16px; word-break: break-all; }
     .msg-media { max-width: 100%; border-radius: 10px; margin-top: 6px; display: block; }
     .delete-btn { font-size: 11px; color: #ef4444; background: none; border: none; cursor: pointer; padding: 2px 4px; opacity: 0.7; }
-    .delete-btn:hover { opacity: 1; text-decoration: underline; }
 
     .input-bar { padding: 12px; background: #0f172a; border-top: 1px solid #334155; display: flex; gap: 8px; align-items: center; }
     .file-btn { background: #334155; color: #94a3b8; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; }
@@ -63,23 +64,19 @@
     </header>
 
     <!-- プロフィール設定画面 -->
-    <div class="home-screen" id="homeScreen">
-      <div class="home-title">プロフィール設定</div>
-      
+    <div class="screen" id="homeScreen">
+      <div style="font-size:20px; font-weight:bold;">プロフィール設定</div>
       <div class="profile-box">
         <img id="avatarPreview" class="avatar-preview" src="https://via.placeholder.com/60/334155/ffffff?text=Icon" alt="icon">
-        
         <div class="input-group">
           <label>アイコン画像</label>
           <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
           <button class="menu-btn" style="background:#334155; font-size:12px; padding:8px;" onclick="document.getElementById('avatarInput').click()">画像を選択</button>
         </div>
-
         <div class="input-group">
           <label>ユーザーネーム</label>
           <input type="text" id="usernameInput" placeholder="例: 匿名ユーザー" value="名無し">
         </div>
-
         <div class="input-group">
           <label>性別</label>
           <select id="genderSelect">
@@ -88,16 +85,23 @@
             <option value="未設定" selected>未設定</option>
           </select>
         </div>
-
-        <button class="menu-btn btn-primary" onclick="enterChat()">相手を探す</button>
+        <button class="menu-btn btn-primary" onclick="startMatching()">相手を探す</button>
       </div>
+    </div>
+
+    <!-- マッチング待機画面 -->
+    <div class="screen" id="matchingScreen" style="display:none;">
+      <div class="spinner"></div>
+      <div style="font-size:18px; font-weight:bold;">相手を探しています...</div>
+      <div style="font-size:13px; color:#94a3b8;">別のユーザーが参加するのを待っています</div>
+      <button class="menu-btn" style="background:#334155; margin-top:20px; width:auto; padding:10px 24px;" onclick="cancelMatching()">キャンセル</button>
     </div>
 
     <!-- チャット画面 -->
     <div class="chat-screen" id="chatScreen">
-      <div style="padding: 8px 16px; background: #1b263b; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between;">
-        <span>チャットルーム</span>
-        <button class="back-btn" onclick="showHome()">✕ 退出する</button>
+      <div style="padding: 8px 16px; background: #1b263b; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; align-items:center;">
+        <span>🟢 相手と接続しました</span>
+        <button class="back-btn" onclick="leaveChat()">✕ 退出する</button>
       </div>
       <div class="chat-box" id="chatBox"></div>
       <div class="input-bar">
@@ -114,73 +118,96 @@
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // オンライン人数カウント
-    const roomChannel = supabaseClient.channel('online-users');
-    roomChannel
-      .on('presence', { event: 'sync' }, () => {
-        const state = roomChannel.presenceState();
-        const count = Object.keys(state).length;
-        document.getElementById('onlineCount').innerText = `🟢 オンライン: ${count}人`;
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await roomChannel.track({ online_at: new Date().toISOString() });
-        }
-      });
+    let currentUser = { id: Math.random().toString(36).substring(7), name: "名無し", gender: "未設定", avatar: "" };
+    let currentRoomId = null;
+    let matchChannel = null;
 
-    let currentUser = {
-      name: "名無し",
-      gender: "未設定",
-      avatar: ""
-    };
+    // 全体オンラインカウント
+    const presenceChannel = supabaseClient.channel('global-online');
+    presenceChannel.on('presence', { event: 'sync' }, () => {
+      const state = presenceChannel.presenceState();
+      document.getElementById('onlineCount').innerText = `🟢 オンライン: ${Object.keys(state).length}人`;
+    }).subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') await presenceChannel.track({ online_at: new Date().toISOString() });
+    });
 
     function previewAvatar(e) {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = (event) => {
         document.getElementById('avatarPreview').src = event.target.result;
         currentUser.avatar = event.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    async function enterChat() {
+    async function startMatching() {
       const name = document.getElementById('usernameInput').value.trim();
-      const gender = document.getElementById('genderSelect').value;
       if (name) currentUser.name = name;
-      currentUser.gender = gender;
+      currentUser.gender = document.getElementById('genderSelect').value;
 
-      // アイコン画像が選択されている場合はアップロード
       const avatarFile = document.getElementById('avatarInput').files[0];
       if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `avatar_${Date.now()}.${fileExt}`;
+        const fileName = `avatar_${Date.now()}.${avatarFile.name.split('.').pop()}`;
         const { data } = await supabaseClient.storage.from('chat-media').upload(fileName, avatarFile);
         if (data) {
-          const { data: publicUrl } = supabaseClient.storage.from('chat-media').getPublicUrl(fileName);
-          currentUser.avatar = publicUrl.publicUrl;
+          currentUser.avatar = supabaseClient.storage.from('chat-media').getPublicUrl(fileName).data.publicUrl;
         }
       }
 
       document.getElementById('homeScreen').style.display = 'none';
-      document.getElementById('chatScreen').style.display = 'flex';
+      document.getElementById('matchingScreen').style.display = 'flex';
+
+      // 待機キュー用のチャンネルに参加
+      matchChannel = supabaseClient.channel('match_queue', { config: { presence: { key: currentUser.id } } });
       
+      matchChannel.on('presence', { event: 'sync' }, () => {
+        const state = matchChannel.presenceState();
+        const users = Object.keys(state);
+
+        // 2人以上のユーザーが待機中になればマッチング成立
+        if (users.length >= 2) {
+          // ユーザーID順で最初の2人を選び、ペア専用のルームIDを生成
+          const pairedUsers = users.sort().slice(0, 2);
+          if (pairedUsers.includes(currentUser.id)) {
+            currentRoomId = `room_${pairedUsers.join('_')}`;
+            openChat();
+          }
+        }
+      }).subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await matchChannel.track({ user: currentUser });
+        }
+      });
+    }
+
+    function cancelMatching() {
+      if (matchChannel) matchChannel.unsubscribe();
+      document.getElementById('homeScreen').style.display = 'flex';
+      document.getElementById('matchingScreen').style.display = 'none';
+    }
+
+    function openChat() {
+      if (matchChannel) matchChannel.unsubscribe();
+      document.getElementById('matchingScreen').style.display = 'none';
+      document.getElementById('chatScreen').style.display = 'flex';
       document.getElementById('chatBox').innerHTML = '';
       initChat();
     }
 
-    function showHome() {
-      document.getElementById('homeScreen').style.display = 'flex';
+    function leaveChat() {
       document.getElementById('chatScreen').style.display = 'none';
+      document.getElementById('homeScreen').style.display = 'flex';
+      currentRoomId = null;
     }
 
     async function initChat() {
-      const { data } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
+      const { data } = await supabaseClient.from('messages').select('*').eq('room_id', currentRoomId).order('id', { ascending: true });
       if (data) data.forEach(addMessageToScreen);
 
-      supabaseClient.channel('public:messages')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+      supabaseClient.channel(`room:${currentRoomId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoomId}` }, payload => {
           addMessageToScreen(payload.new);
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
@@ -203,21 +230,13 @@
       html += `<div class="msg-header">`;
       html += `<span>${msg.username || '名無し'}</span>`;
       if (msg.gender) html += `<span class="gender-badge ${genderClass}">${msg.gender}</span>`;
-      html += `</div>`;
-      
-      html += `<div class="msg">`;
+      html += `</div><div class="msg">`;
       if (msg.content) html += `<div>${msg.content}</div>`;
       if (msg.image_url) {
         const isVideo = msg.image_url.match(/\.(mp4|webm|mov)$/i);
-        if (isVideo) {
-          html += `<video src="${msg.image_url}" controls class="msg-media"></video>`;
-        } else {
-          html += `<img src="${msg.image_url}" class="msg-media" />`;
-        }
+        html += isVideo ? `<video src="${msg.image_url}" controls class="msg-media"></video>` : `<img src="${msg.image_url}" class="msg-media" />`;
       }
-      html += `</div>`;
-      html += `<div><button class="delete-btn" onclick="deleteMessage(${msg.id})">削除</button></div>`;
-      html += `</div>`;
+      html += `</div><div><button class="delete-btn" onclick="deleteMessage(${msg.id})">削除</button></div></div>`;
 
       row.innerHTML = html;
       box.appendChild(row);
@@ -232,41 +251,38 @@
     async function sendMessage() {
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || !currentRoomId) return;
       input.value = '';
       await supabaseClient.from('messages').insert([{
         content: text,
         username: currentUser.name,
         gender: currentUser.gender,
-        avatar_url: currentUser.avatar
+        avatar_url: currentUser.avatar,
+        room_id: currentRoomId
       }]);
     }
 
     async function uploadMedia(e) {
       const file = e.target.files[0];
-      if (!file) return;
+      if (!file || !currentRoomId) return;
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-
+      const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
       const { data, error } = await supabaseClient.storage.from('chat-media').upload(fileName, file);
-      if (error) {
-        alert('送信失敗: ' + error.message);
-        return;
-      }
+      if (error) return alert('送信失敗: ' + error.message);
+
       const { data: publicUrlData } = supabaseClient.storage.from('chat-media').getPublicUrl(fileName);
       await supabaseClient.from('messages').insert([{
         image_url: publicUrlData.publicUrl,
         username: currentUser.name,
         gender: currentUser.gender,
-        avatar_url: currentUser.avatar
+        avatar_url: currentUser.avatar,
+        room_id: currentRoomId
       }]);
     }
 
     async function deleteMessage(id) {
-      if (!confirm('このメッセージを取り消しますか？')) return;
-      const { error } = await supabaseClient.from('messages').delete().eq('id', id);
-      if (error) alert('削除できませんでした: ' + error.message);
+      if (!confirm('メッセージを取り消しますか？')) return;
+      await supabaseClient.from('messages').delete().eq('id', id);
     }
   </script>
 </body>
