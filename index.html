@@ -1,304 +1,335 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>HIMA LAB - ひまラボ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIMA-LAB - Find, Group, or 1-on-1 Chat</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #0f172a;
-      --bg-card: #1e293b;
-      --border-color: #334155;
-      --text-main: #f8fafc;
+      --bg-body: #0b0f17;
+      --bg-card: #151d2a;
+      --bg-card-hover: #1e293b;
+      --border: #232d3f;
+      --text-main: #f1f5f9;
       --text-sub: #94a3b8;
-      --btn-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-      --msg-me: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      --msg-other: #334155;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --green: #22c55e;
+      --danger: #ef4444;
     }
 
     [data-theme="light"] {
-      --bg-main: #f0f4f9;
+      --bg-body: #f8fafc;
       --bg-card: #ffffff;
-      --border-color: #e2e8f0;
-      --text-main: #1e293b;
+      --bg-card-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
       --text-sub: #64748b;
-      --btn-grad: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      --msg-me: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
-      --msg-other: #e2e8f0;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
     }
 
-    * { box-sizing: border-box; font-family: 'Zen Maru Gothic', sans-serif; transition: background 0.2s, color 0.2s; }
-    body { margin: 0; background: #020617; color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background 0.2s, border-color 0.2s; }
+    body { background: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
+
+    .container { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* ヘッダー */
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .logo-area .logo { font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+    .logo-area .sub { font-size: 12px; color: var(--text-sub); }
+    .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; font-weight: 600; }
+    .online-badge { color: var(--text-sub); }
+    .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+    .btn-login { background: #000; color: #fff; border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .btn-register { background: #fff; color: #000; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+    /* ナビゲーション */
+    nav { display: flex; justify-content: center; gap: 32px; border-bottom: 1px solid var(--border); }
+    .nav-item { font-size: 16px; font-weight: bold; color: var(--text-sub); padding-bottom: 12px; cursor: pointer; border-bottom: 3px solid transparent; }
+    .nav-item.active { color: var(--text-main); border-color: var(--accent); }
+
+    /* メインレイアウト */
+    .main-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
+    @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+
+    .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-title { font-size: 18px; font-weight: bold; }
+
+    .btn-blue { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    .btn-blue:hover { background: var(--accent-hover); }
+
+    /* グリッドレイアウト */
+    .user-grid-container { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+    @media (max-width: 700px) { .user-grid-container { grid-template-columns: 1fr; } }
+
+    .featured-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .featured-img-wrap { position: relative; width: 100%; height: 180px; border-radius: 12px; overflow: hidden; }
+    .featured-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .status-tag { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: var(--green); padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
     
-    /* PC表示時はスマホ風フレーム、スマホ表示時は全画面 */
-    .app { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background: var(--bg-card); position: relative; overflow: hidden; }
-    @media (min-width: 600px) {
-      .app { height: 92vh; border-radius: 32px; border: 2px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-    }
+    .tags { display: flex; gap: 6px; }
+    .tag { background: var(--border); font-size: 11px; padding: 4px 8px; border-radius: 6px; color: var(--text-sub); }
 
-    header { padding: 14px 18px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-    .logo { font-weight: 900; font-size: 20px; background: linear-gradient(135deg, #ff007a, #00f0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
-    .btn-sm { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 14px; cursor: pointer; font-size: 12px; font-weight: bold; }
+    .small-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 600px) { .small-cards-grid { grid-template-columns: repeat(2, 1fr); } }
 
-    .screen { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; gap: 16px; overflow-y: auto; }
-    .card { width: 100%; background: var(--bg-main); padding: 20px; border-radius: 24px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 14px; }
-    
-    .input-field { display: flex; flex-direction: column; gap: 4px; text-align: left; }
-    .input-field label { font-size: 12px; color: var(--text-sub); font-weight: bold; }
-    .input-field input, .input-field select { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 14px; font-size: 14px; outline: none; }
+    .small-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; position: relative; }
+    .small-card:hover { background: var(--bg-card-hover); }
+    .avatar-sm { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+    .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; position: absolute; top: 12px; right: 12px; }
+    .btn-sm-chat { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; width: 100%; margin-top: 4px; }
+    .btn-sm-chat:hover { border-color: var(--accent); color: var(--accent); }
 
-    .btn-main { width: 100%; padding: 14px; border-radius: 16px; border: none; font-size: 16px; font-weight: 900; color: white; background: var(--btn-grad); cursor: pointer; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
-    .btn-main:active { transform: scale(0.98); }
+    .center-action { display: flex; justify-content: center; margin: 20px 0; }
 
-    /* モーダル（規約・通報） */
-    .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-content { background: var(--bg-card); border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border-color); width: 100%; font-size: 13px; line-height: 1.6; }
+    /* サイドバー */
+    .sidebar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; height: fit-content; }
+    .online-list { display: flex; flex-direction: column; gap: 10px; }
+    .online-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+    .avatar-xs { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 
-    /* チャット UI */
-    .chat-screen { flex: 1; display: none; flex-direction: column; height: 100%; overflow: hidden; }
-    .chat-bar { padding: 10px 16px; background: var(--bg-main); font-size: 12px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
-    .chat-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-    
-    .msg-group { display: flex; gap: 8px; max-width: 85%; }
-    .msg-group.me { align-self: flex-end; flex-direction: row-reverse; }
-    .msg-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--border-color); }
-    .msg-bubble { background: var(--msg-other); color: var(--text-main); padding: 10px 14px; border-radius: 16px 16px 16px 4px; font-size: 14px; word-break: break-all; }
-    .msg-group.me .msg-bubble { background: var(--msg-me); color: white; border-radius: 16px 16px 4px 16px; }
-    .msg-img { max-width: 100%; border-radius: 10px; margin-top: 4px; display: block; }
-    .report-link { font-size: 10px; color: #ef4444; border: none; background: none; cursor: pointer; padding: 0; margin-top: 2px; }
+    /* フッター・グループチャット */
+    .group-section { border-top: 1px solid var(--border); padding-top: 20px; }
+    .group-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px; }
+    @media (max-width: 700px) { .group-grid { grid-template-columns: 1fr; } }
 
-    .input-box { padding: 10px 14px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; gap: 8px; align-items: center; }
-    .input-box input[type="text"] { flex: 1; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 16px; border-radius: 20px; font-size: 14px; outline: none; }
+    .group-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; gap: 12px; align-items: center; }
+    .group-icon { font-size: 24px; background: var(--border); padding: 10px; border-radius: 10px; }
+
+    footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; color: var(--text-sub); }
+    footer .links a { color: var(--text-sub); text-decoration: none; margin-right: 12px; }
+
+    /* モーダル */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
+    .modal-box { background: var(--bg-card); border: 1px solid var(--border); padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
+    .chat-box { height: 200px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow-y: auto; background: var(--bg-body); display: flex; flex-direction: column; gap: 8px; }
+    .chat-input-area { display: flex; gap: 8px; }
+    .chat-input-area input { flex: 1; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px; outline: none; }
   </style>
 </head>
-<body data-theme="dark">
-  <div class="app">
-    <!-- 利用規約モーダル -->
-    <div class="modal" id="termsModal">
-      <div class="modal-content">
-        <h3>利用規約・ガイドライン</h3>
-        <p>1. 誹謗中傷、公序良俗に反するコンテンツの送信を禁止します。</p>
-        <p>2. 不適切な言動や通報が一定数に達した場合、AI判定により即座にアカウントが永久停止されます。</p>
-        <p>3. 違反テキストや画像は自動検知システムにより削除されます。</p>
-        <button class="btn-main" onclick="closeTerms()" style="margin-top:10px;">同意して閉じる</button>
-      </div>
+<body>
+
+<div class="container">
+  <!-- ヘッダー -->
+  <header>
+    <div class="logo-area">
+      <div class="logo">HIMA-LAB</div>
+      <div class="sub">Find, Group, or 1-on-1 Chat</div>
     </div>
+    <div class="header-right">
+      <span class="online-badge">3,456 online now</span>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
+      <button class="btn-login" onclick="openModal('ログイン')">ログイン</button>
+      <button class="btn-register" onclick="openModal('登録')">登録</button>
+    </div>
+  </header>
 
-    <!-- ヘッダー -->
-    <header>
-      <div class="logo">⚡ HIMA LAB</div>
-      <div class="header-right">
-        <button class="btn-sm" onclick="toggleTheme()">🌙/☀️</button>
-        <button class="btn-sm" onclick="showTerms()">規約</button>
+  <!-- ナビゲーション -->
+  <nav>
+    <div class="nav-item active" onclick="switchTab(this, 'search')">相手を探す</div>
+    <div class="nav-item" onclick="switchTab(this, 'group')">複数人でチャット</div>
+    <div class="nav-item" onclick="switchTab(this, '1on1')">1対1で対話</div>
+  </nav>
+
+  <!-- メインコンテンツ -->
+  <div class="main-layout">
+    <!-- 左側コンテンツ -->
+    <main>
+      <div class="content-header">
+        <div class="section-title">相手を探す</div>
+        <button class="btn-blue" onclick="startMatching()">チャットを始める (3,456人がオンライン)</button>
       </div>
-    </header>
 
-    <!-- メイン選択画面 -->
-    <div class="screen" id="homeScreen">
-      <div class="card">
-        <div class="input-field">
-          <label>ニックネーム</label>
-          <input type="text" id="usernameInput" value="ひま人">
+      <div class="user-grid-container">
+        <!-- ピックアップユーザー -->
+        <div class="featured-card">
+          <div class="featured-img-wrap">
+            <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400" alt="Kenji">
+            <span class="status-tag">● Active</span>
+          </div>
+          <div style="font-weight: bold; font-size: 16px;">Kenji S. (25)</div>
+          <p style="font-size: 12px; color: var(--text-sub);">フレンドにもなり、お話しちゃう、有意義にも探し、趣味…</p>
+          <div class="tags">
+            <span class="tag">趣味</span>
+            <span class="tag">フードトラック</span>
+          </div>
+          <button class="btn-blue" style="width: 100%; margin-top: 8px;" onclick="openChatWith('Kenji S.')">話す</button>
         </div>
-        <div class="input-field">
-          <label>性別</label>
-          <select id="genderSelect">
-            <option value="男性">男性</option>
-            <option value="女性">女性</option>
-            <option value="秘密" selected>秘密</option>
-          </select>
+
+        <!-- 小さなユーザーカード -->
+        <div class="small-cards-grid">
+          <div class="small-card">
+            <span class="status-dot"></span>
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" class="avatar-sm">
+            <div style="font-size: 13px; font-weight: bold;">Haruka M. (23)</div>
+            <button class="btn-sm-chat" onclick="openChatWith('Haruka M.')">💬 チャットを開始</button>
+          </div>
+          <div class="small-card">
+            <span class="status-dot"></span>
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" class="avatar-sm">
+            <div style="font-size: 13px; font-weight: bold;">Yuuki T. (26)</div>
+            <button class="btn-sm-chat" onclick="openChatWith('Yuuki T.')">💬 チャットを開始</button>
+          </div>
+          <div class="small-card">
+            <span class="status-dot"></span>
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" class="avatar-sm">
+            <div style="font-size: 13px; font-weight: bold;">Haruka K. (25)</div>
+            <button class="btn-sm-chat" onclick="openChatWith('Haruka K.')">💬 チャットを開始</button>
+          </div>
+          <div class="small-card">
+            <span class="status-dot"></span>
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150" class="avatar-sm">
+            <div style="font-size: 13px; font-weight: bold;">Hania M. (26)</div>
+            <button class="btn-sm-chat" onclick="openChatWith('Hania M.')">💬 チャットを開始</button>
+          </div>
+          <div class="small-card">
+            <span class="status-dot"></span>
+            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150" class="avatar-sm">
+            <div style="font-size: 13px; font-weight: bold;">Naria M. (25)</div>
+            <button class="btn-sm-chat" onclick="openChatWith('Naria M.')">💬 チャットを開始</button>
+          </div>
+          <div class="small-card">
+            <span class="status-dot"></span>
+            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150" class="avatar-sm">
+            <div style="font-size: 13px; font-weight: bold;">Kenji G. (25)</div>
+            <button class="btn-sm-chat" onclick="openChatWith('Kenji G.')">💬 チャットを開始</button>
+          </div>
         </div>
-        <button class="btn-main" onclick="startMatching(1)">🤝 1対1マッチング（個室）</button>
-        <button class="btn-main" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="joinGroupRoom()">🔊 最大20人通話グループ部屋</button>
       </div>
-    </div>
 
-    <!-- 待機画面 -->
-    <div class="screen" id="matchingScreen" style="display:none;">
-      <h3>🔍 相手を探しています...</h3>
-      <p style="font-size:12px; color:var(--text-sub);">1対1の専用部屋を生成中</p>
-      <button class="btn-sm" onclick="cancelMatching()">キャンセル</button>
-    </div>
+      <div class="center-action">
+        <button class="btn-blue" onclick="startMatching()">チャットを始める (3,456人がオンライン)</button>
+      </div>
 
-    <!-- チャット画面 -->
-    <div class="chat-screen" id="chatScreen">
-      <div class="chat-bar">
-        <span id="roomStatus">🟢 接続中</span>
-        <button class="btn-sm" style="color:#ef4444;" onclick="leaveChat()">退出</button>
+      <!-- 人気グループ -->
+      <div class="group-section">
+        <div class="section-title">人気なグループチャット</div>
+        <div class="group-grid">
+          <div class="group-card">
+            <div class="group-icon">🎬</div>
+            <div>
+              <div style="font-weight: bold; font-size: 14px;">#映画ファン (120名)</div>
+              <div style="font-size: 11px; color: var(--text-sub);">メンバーはオンライン</div>
+            </div>
+          </div>
+          <div class="group-card">
+            <div class="group-icon">🎵</div>
+            <div>
+              <div style="font-weight: bold; font-size: 14px;">#音楽好き (85名)</div>
+              <div style="font-size: 11px; color: var(--text-sub);">1メンバーオンライン</div>
+            </div>
+          </div>
+          <div class="group-card">
+            <div class="group-icon">🎨</div>
+            <div>
+              <div style="font-weight: bold; font-size: 14px;">#アート好き (1200名)</div>
+              <div style="font-size: 11px; color: var(--text-sub);">メンバーオンライン</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="chat-area" id="chatBox"></div>
-      <div class="input-box">
-        <label style="cursor:pointer; font-size:18px;">📁<input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;" onchange="uploadMedia(event)"></label>
-        <input type="text" id="msgInput" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter')sendMessage()">
-        <button class="btn-sm" style="background:var(--btn-grad); color:white;" onclick="sendMessage()">送信</button>
+    </main>
+
+    <!-- サイドバー（オンラインユーザー） -->
+    <aside class="sidebar">
+      <div class="section-title" style="font-size: 15px;">現在オンライン中</div>
+      <div class="online-list">
+        <div class="online-item"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100" class="avatar-xs"> Kenji S.</div>
+        <div class="online-item"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" class="avatar-xs"> Haruka M.</div>
+        <div class="online-item"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="avatar-xs"> Yuuki T.</div>
+        <div class="online-item"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" class="avatar-xs"> Haruka K.</div>
+        <div class="online-item"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100" class="avatar-xs"> Hania M.</div>
+        <div class="online-item"><img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" class="avatar-xs"> Naria M.</div>
       </div>
-    </div>
+    </aside>
   </div>
 
-  <script>
-    const SUPABASE_URL = "https://yssmhumtrdihpketcuux.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <!-- フッター -->
+  <footer>
+    <div class="links">
+      <a href="#" onclick="alert('HIMA-LABについて')">について</a>
+      <a href="#" onclick="alert('利用規約・通報ガイドライン')">規約</a>
+      <a href="#" onclick="alert('ヘルプ')">ヘルプ</a>
+    </div>
+    <div>© 2024 HIMA-LAB. All Rights Reserved.</div>
+  </footer>
+</div>
 
-    let myId = 'usr_' + Math.random().toString(36).substring(2, 9);
-    let myName = "ひま人_" + Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('usernameInput').value = myName;
+<!-- チャットモーダル -->
+<div class="modal-overlay" id="chatModal">
+  <div class="modal-box">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span id="chatTargetName" style="font-weight: bold;">Chat</span>
+      <button onclick="closeModal()" style="background:none; border:none; color:var(--text-main); cursor:pointer;">✕</button>
+    </div>
+    <div class="chat-box" id="chatMessages">
+      <div style="font-size: 11px; color: var(--text-sub); text-align: center;">接続しました</div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="msgInput" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter')sendMsg()">
+      <button class="btn-blue" onclick="sendMsg()">送信</button>
+    </div>
+    <button style="background:none; border:none; color:var(--danger); font-size:11px; cursor:pointer; text-align:left;" onclick="reportUser()">⚠️ このユーザーを通報</button>
+  </div>
+</div>
 
-    let currentRoomId = null;
-    let matchChannel = null;
-    let isBanned = localStorage.getItem('hima_banned') === 'true';
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
 
-    function toggleTheme() {
-      const b = document.body;
-      b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  function switchTab(el, mode) {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function openModal(title) {
+    alert(title + '画面を開きます');
+  }
+
+  function openChatWith(name) {
+    document.getElementById('chatTargetName').innerText = name + ' さんとの対話';
+    document.getElementById('chatModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('chatModal').style.display = 'none';
+  }
+
+  function sendMsg() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // AI検知（NGワード）
+    if (["死ね", "殺す", "暴言"].some(w => text.includes(w))) {
+      alert("【AI判定】不適切な発言が検知されたため送信をブロックしました。");
+      return;
     }
 
-    function showTerms() { document.getElementById('termsModal').style.display = 'flex'; }
-    function closeTerms() { document.getElementById('termsModal').style.display = 'none'; }
+    const box = document.getElementById('chatMessages');
+    const msgDiv = document.createElement('div');
+    msgDiv.style.fontSize = '13px';
+    msgDiv.innerText = '自分: ' + text;
+    box.appendChild(msgDiv);
+    input.value = '';
+    box.scrollTop = box.scrollHeight;
+  }
 
-    // 1対1のマッチング（3人同時参加の徹底防止）
-    async function startMatching(limit) {
-      if (isBanned) return alert("規約違反により、この端末からのアクセスは自動制限されています。");
-
-      myName = document.getElementById('usernameInput').value.trim() || myName;
-      document.getElementById('homeScreen').style.display = 'none';
-      document.getElementById('matchingScreen').style.display = 'flex';
-
-      matchChannel = supabaseClient.channel('queue_lobby', { config: { presence: { key: myId } } });
-      
-      matchChannel.on('presence', { event: 'sync' }, () => {
-        const state = matchChannel.presenceState();
-        const users = Object.keys(state).sort();
-
-        // 正確に2名だけを抽出し、他を完全に遮断
-        if (users.length >= 2) {
-          const pair = users.slice(0, 2);
-          if (pair.includes(myId)) {
-            currentRoomId = `pair_${pair[0]}_${pair[1]}`;
-            enterChat(`1対1 個室チャット`);
-          }
-        }
-      }).subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') await matchChannel.track({ id: myId, name: myName });
-      });
+  function reportUser() {
+    if (confirm('不適切なユーザーとして通報しますか？')) {
+      alert('通報を受け付けました。運営AIが対応を行います。');
+      closeModal();
     }
+  }
 
-    // 最大20人グループ部屋
-    async function joinGroupRoom() {
-      if (isBanned) return alert("アクセス制限中");
-      currentRoomId = `group_room_max20`;
-      enterChat(`20人グループ部屋`);
-    }
+  function startMatching() {
+    openChatWith('ランダムマッチ相手');
+  }
+</script>
 
-    function cancelMatching() {
-      if (matchChannel) matchChannel.unsubscribe();
-      document.getElementById('homeScreen').style.display = 'flex';
-      document.getElementById('matchingScreen').style.display = 'none';
-    }
-
-    function enterChat(title) {
-      if (matchChannel) matchChannel.unsubscribe();
-      document.getElementById('matchingScreen').style.display = 'none';
-      document.getElementById('homeScreen').style.display = 'none';
-      document.getElementById('chatScreen').style.display = 'flex';
-      document.getElementById('roomStatus').innerText = `🟢 ${title}`;
-      document.getElementById('chatBox').innerHTML = '';
-      initChatRoom();
-    }
-
-    function leaveChat() {
-      document.getElementById('chatScreen').style.display = 'none';
-      document.getElementById('homeScreen').style.display = 'flex';
-      currentRoomId = null;
-    }
-
-    async function initChatRoom() {
-      // メッセージのロード
-      const { data } = await supabaseClient.from('messages').select('*').eq('room_id', currentRoomId).order('id', { ascending: true });
-      if (data) data.forEach(renderMsg);
-
-      // リアルタイム購読
-      supabaseClient.channel(`room_${currentRoomId}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoomId}` }, payload => {
-          renderMsg(payload.new);
-        }).subscribe();
-    }
-
-    function renderMsg(msg) {
-      const box = document.getElementById('chatBox');
-      const isMe = msg.username === myName;
-      
-      const div = document.createElement('div');
-      div.className = `msg-group ${isMe ? 'me' : ''}`;
-      
-      let body = `<div class="msg-bubble">`;
-      if (msg.content) body += `<div>${msg.content}</div>`;
-      if (msg.image_url) {
-        const isVid = msg.image_url.match(/\.(mp4|webm|mov)$/i);
-        body += isVid ? `<video src="${msg.image_url}" controls class="msg-img"></video>` : `<img src="${msg.image_url}" class="msg-img"/>`;
-      }
-      if (!isMe) {
-        body += `<button class="report-link" onclick="reportUser('${msg.username}', '${msg.content || 'メディア'}')">⚠️ 通報する</button>`;
-      }
-      body += `</div>`;
-
-      div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${msg.username}" class="msg-avatar">${body}`;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-    }
-
-    // メッセージ送信 ＆ AI自動検知モック
-    async function sendMessage() {
-      const input = document.getElementById('msgInput');
-      const text = input.value.trim();
-      if (!text || !currentRoomId) return;
-      
-      // 簡易AIテキスト検知（NGワードの検知）
-      const ngWords = ["死ね", "殺す", "暴言"];
-      if (ngWords.some(w => text.includes(w))) {
-        alert("【AI判定】不適切な発言が検知されたため、アカウントを制限しました。");
-        localStorage.setItem('hima_banned', 'true');
-        location.reload();
-        return;
-      }
-
-      input.value = '';
-      await supabaseClient.from('messages').insert([{ content: text, username: myName, room_id: currentRoomId }]);
-    }
-
-    // メディア送信
-    async function uploadMedia(e) {
-      const file = e.target.files[0];
-      if (!file || !currentRoomId) return;
-
-      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2,4)}.${file.name.split('.').pop()}`;
-      const { data, error } = await supabaseClient.storage.from('chat-media').upload(fileName, file);
-      
-      if (error) {
-        alert("送信失敗: SupabaseのStorage設定（Policy）を確認してください。");
-        return;
-      }
-
-      const { data: pub } = supabaseClient.storage.from('chat-media').getPublicUrl(fileName);
-      await supabaseClient.from('messages').insert([{ image_url: pub.publicUrl, username: myName, room_id: currentRoomId }]);
-    }
-
-    // 通報機能 ＆ 自動削除判定
-    async function reportUser(targetUser, content) {
-      if (confirm(`${targetUser} さんを不適切な発言・コンテンツで通報しますか？`)) {
-        let count = parseInt(localStorage.getItem(`reports_${targetUser}`) || '0') + 1;
-        localStorage.setItem(`reports_${targetUser}`, count);
-
-        if (count >= 2) {
-          alert("【AI自動処理】対象ユーザーに対する複数の通報を確認したため、該当ユーザーのアカウントを一時停止しました。");
-        } else {
-          alert("通報を受理しました。運営AIがログを監視します。");
-        }
-      }
-    }
-  </script>
 </body>
 </html>
