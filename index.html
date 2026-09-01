@@ -41,7 +41,8 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function initChat() {
-      const { data } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
+      const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
+      if (error) console.error("データ読み込みエラー:", error);
       if (data) data.forEach(addMessageToScreen);
 
       supabaseClient.channel('public:messages')
@@ -75,21 +76,28 @@
       const text = input.value.trim();
       if (!text) return;
       input.value = '';
-      await supabaseClient.from('messages').insert([{ content: text }]);
+      const { error } = await supabaseClient.from('messages').insert([{ content: text }]);
+      if (error) alert("送信エラー: " + error.message);
     }
 
-  async function uploadMedia(e) {
+    async function uploadMedia(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const fileName = `${Date.now()}_${file.name}`;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+
       const { data, error } = await supabaseClient.storage.from('chat-media').upload(fileName, file);
       if (error) {
         alert('送信失敗: ' + error.message);
         return;
       }
       const { data: publicUrlData } = supabaseClient.storage.from('chat-media').getPublicUrl(fileName);
-      await supabaseClient.from('messages').insert([{ image_url: publicUrlData.publicUrl }]);
+      const { error: dbError } = await supabaseClient.from('messages').insert([{ image_url: publicUrlData.publicUrl }]);
+      if (dbError) alert("保存エラー: " + dbError.message);
     }
+
+    initChat();
   </script>
 </body>
 </html>
