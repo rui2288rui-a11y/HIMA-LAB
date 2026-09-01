@@ -23,6 +23,7 @@
       --accent-color: #2563eb;
       --accent-hover: #1d4ed8;
       --accent-glow: rgba(37, 99, 235, 0.4);
+      --danger-color: #ef4444;
       --online-indicator: #10b981;
     }
 
@@ -74,31 +75,30 @@
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
     .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
 
-    /* チャット画面スタイル (最下部固定構造へ変更) */
+    /* チャット画面スタイル */
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; flex-shrink: 0; }
     
-    /* スクロールエリア（下から上へ並べることで最初から一番下に固定） */
-    .chat-messages {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 16px;
-    }
-    .chat-messages-inner {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 16px; }
+    .chat-messages-inner { display: flex; flex-direction: column; gap: 16px; }
 
-    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
+    .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; position: relative; group: hover; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
     .message-sender { font-size: 11px; color: var(--text-muted); }
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; word-break: break-all; }
     .message-item.self .message-bubble { background: var(--accent-color); border: none; }
-    .chat-img-attachment { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 4px; border: 1px solid var(--panel-border); display: block; }
+    
+    .chat-media-attachment { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 4px; border: 1px solid var(--panel-border); display: block; object-fit: contain; }
+
+    /* 取り消しボタン */
+    .btn-unsend { font-size: 10px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; margin-top: 2px; text-decoration: underline; transition: color 0.2s; }
+    .btn-unsend:hover { color: var(--danger-color); }
+
+    /* プレビュー表示エリア */
+    .media-preview-area { display: none; padding: 12px 24px 0 24px; background: rgba(6, 8, 13, 0.95); flex-shrink: 0; }
+    .media-preview-container { position: relative; display: inline-block; max-width: 150px; }
+    .media-preview-element { max-width: 150px; max-height: 100px; border-radius: 8px; border: 1px solid var(--panel-border); object-fit: cover; }
+    .btn-remove-preview { position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
     
     /* 入力エリア */
     .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; flex-shrink: 0; background: rgba(6, 8, 13, 0.95); align-items: center; }
@@ -192,11 +192,19 @@
           </div>
         </div>
 
+        <!-- プレビュー表示部分 -->
+        <div class="media-preview-area" id="media-preview-area">
+          <div class="media-preview-container">
+            <div id="preview-wrapper"></div>
+            <button class="btn-remove-preview" onclick="clearMediaPreview()">✕</button>
+          </div>
+        </div>
+
         <div class="chat-input-area">
-          <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-          <button class="btn-icon" onclick="document.getElementById('file-input').click()" title="画像を送信">📷</button>
+          <input type="file" id="file-input" accept="image/*,video/*" style="display:none;" onchange="handleFileSelect(event)">
+          <button class="btn-icon" onclick="document.getElementById('file-input').click()" title="画像・動画を添付">📁</button>
           
-          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力または画像を貼り付け (Ctrl+V)..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力または画像/動画を貼り付け..." onkeypress="if(event.key==='Enter') sendMessage()">
           <button class="btn-action-primary" style="padding:0 24px;" onclick="sendMessage()">送信</button>
           <button class="btn-action-secondary" onclick="leaveChat()" style="padding:0 16px;">退室</button>
         </div>
@@ -220,6 +228,7 @@
     
     let isMatchingState = false;
     let currentPartner = null;
+    let pendingMedia = null; // { url, type: 'image' | 'video' }
 
     document.getElementById('my-display-name').innerText = myUserName;
     document.getElementById('my-avatar-name').innerText = myUserName.slice(-2);
@@ -282,7 +291,15 @@
 
     room.on('broadcast', { event: 'chat_message' }, (payload) => {
       const msgData = payload.payload;
-      appendMessage(msgData.sender, msgData.text, msgData.senderId === myUserId, msgData.imageUrl);
+      appendMessage(msgData);
+    });
+
+    room.on('broadcast', { event: 'unsend_message' }, (payload) => {
+      const msgId = payload.payload.msgId;
+      const targetEl = document.getElementById(msgId);
+      if (targetEl) {
+        targetEl.remove();
+      }
     });
 
     room.subscribe(async (status) => {
@@ -320,73 +337,129 @@
       switchView('view-matched');
     }
 
-    // メッセージ送信
-    function sendMessage(imageUrl = null) {
+    // メッセージ送信処理
+    function sendMessage() {
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
-      if (!text && !imageUrl) return;
+      
+      if (!text && !pendingMedia) return;
+
+      const msgId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
       room.send({
         type: 'broadcast',
         event: 'chat_message',
         payload: {
+          msgId: msgId,
           sender: myUserName,
           senderId: myUserId,
           text: text,
-          imageUrl: imageUrl
+          media: pendingMedia
         }
       });
 
       input.value = '';
+      clearMediaPreview();
     }
 
-    // 画像選択時の処理
+    // 送信取り消し
+    function unsendMessage(msgId) {
+      room.send({
+        type: 'broadcast',
+        event: 'unsend_message',
+        payload: { msgId: msgId }
+      });
+    }
+
+    // ファイル選択処理
     function handleFileSelect(event) {
       const file = event.target.files[0];
       if (file) {
-        processAndSendImage(file);
+        processMediaFile(file);
       }
     }
 
-    // クリップボードからの画像ペースト（Ctrl + V）の監視
+    // クリップボードのペースト処理（Ctrl + V）
     document.getElementById('chat-input').addEventListener('paste', (e) => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (let item of items) {
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
+        if (item.kind === 'file') {
           const blob = item.getAsFile();
-          processAndSendImage(blob);
-          e.preventDefault();
-          break;
+          if (blob.type.startsWith('image/') || blob.type.startsWith('video/')) {
+            processMediaFile(blob);
+            e.preventDefault();
+            break;
+          }
         }
       }
     });
 
-    // 画像をBase64に変換して送信
-    function processAndSendImage(file) {
+    // ファイルをBase64化してプレビューに表示
+    function processMediaFile(file) {
+      const isVideo = file.type.startsWith('video/');
       const reader = new FileReader();
+      
       reader.onload = function (e) {
-        sendMessage(e.target.result);
+        pendingMedia = {
+          url: e.target.result,
+          type: isVideo ? 'video' : 'image'
+        };
+        showMediaPreview(pendingMedia);
       };
       reader.readAsDataURL(file);
     }
 
-    function appendMessage(sender, text, isSelf, imageUrl = null) {
+    // プレビューの描画
+    function showMediaPreview(media) {
+      const area = document.getElementById('media-preview-area');
+      const wrapper = document.getElementById('preview-wrapper');
+      
+      if (media.type === 'image') {
+        wrapper.innerHTML = `<img src="${media.url}" class="media-preview-element" alt="preview">`;
+      } else {
+        wrapper.innerHTML = `<video src="${media.url}" class="media-preview-element" autoplay muted loop></video>`;
+      }
+      area.style.display = 'block';
+    }
+
+    // プレビューの消去
+    function clearMediaPreview() {
+      pendingMedia = null;
+      document.getElementById('media-preview-area').style.display = 'none';
+      document.getElementById('preview-wrapper').innerHTML = '';
+      document.getElementById('file-input').value = '';
+    }
+
+    // メッセージの画面追加
+    function appendMessage(data) {
       const container = document.getElementById('chat-messages');
       const msgDiv = document.createElement('div');
+      const isSelf = data.senderId === myUserId;
+      
       msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
+      msgDiv.id = data.msgId;
+
+      let content = `<span class="message-sender">${data.sender}</span>`;
       
-      let content = `<span class="message-sender">${sender}</span>`;
-      if (text) {
-        content += `<div class="message-bubble">${escapeHtml(text)}</div>`;
-      }
-      if (imageUrl) {
-        content += `<img src="${imageUrl}" class="chat-img-attachment" alt="Attached Image">`;
+      if (data.text) {
+        content += `<div class="message-bubble">${escapeHtml(data.text)}</div>`;
       }
       
+      if (data.media) {
+        if (data.media.type === 'image') {
+          content += `<img src="${data.media.url}" class="chat-media-attachment" alt="Attached Image">`;
+        } else if (data.media.type === 'video') {
+          content += `<video src="${data.media.url}" class="chat-media-attachment" controls></video>`;
+        }
+      }
+
+      if (isSelf) {
+        content += `<button class="btn-unsend" onclick="unsendMessage('${data.msgId}')">送信取り消し</button>`;
+      }
+
       msgDiv.innerHTML = content;
       container.appendChild(msgDiv);
 
-      // 一番下にスクロールを維持
       const scrollArea = document.getElementById('chat-messages-container');
       scrollArea.scrollTop = 0;
     }
