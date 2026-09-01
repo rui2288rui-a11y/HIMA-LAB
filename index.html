@@ -411,6 +411,22 @@
     let pendingCallSignal = null;
     const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
+    // ==========================================
+    // 自動NGワード判定システム
+    // ==========================================
+    const NG_WORDS = [
+      '死ね', '殺す', 'バカ', 'アホ', 'クズ', 'ゴミ', 
+      '出会い', '裏アカ', 'パパ活', 'ママ活', 'ライン交換', 'line交換', 'カカオ交換', 'kacao',
+      'えっち', 'エッチ', 'アダルト', '下着', '裸',
+      '詐欺', 'お金', '副業', '稼げる'
+    ];
+
+    function containsNgWord(text) {
+      if (!text) return false;
+      const lowerText = text.toLowerCase();
+      return NG_WORDS.some(word => lowerText.includes(word.toLowerCase()));
+    }
+
     function playNotificationSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -453,11 +469,9 @@
         title.innerText = '🛡️ 安心・安全ガイドライン';
         body.innerHTML = `
           <strong>【快適なコミュニケーションのために】</strong><br>
-          Resonance Chatは、すべてのユーザーの皆様がリラックスして日常の雑談や交流を楽しめる空間づくりを目指しています。性的な言動などは禁止しておりますので、女性や10代の方も安心してご利用いただけます。<br><br>
-          <strong>【安心してご利用いただくための取り組み】</strong><br>
-          ・<strong>出会い系サイトではありません：</strong>健全な趣味や雑談のためのコミュニティです。<br>
-          ・<strong>ブロック機能の常時完備：</strong>合わない相手はワンタップで遮断（ブロック）できます。<br>
-          ・<strong>プライバシーとマナーの尊重：</strong>外部連絡先の強制や過度な詮索を行わない健全なコミュニケーションをお願いしております。
+          Resonance Chatは、すべてのユーザーの皆様がリラックスして日常の雑談や交流を楽しめる空間づくりを目指しています。不適切な表現や出会い目的の利用は自動システムで制限されており、女性や10代の方も安心してご利用いただけます。<br><br>
+          <strong>【自動NGワード判定システム稼働中】</strong><br>
+          暴言、誹謗中傷、外部連絡先の交換誘導、不適切な表現が含まれるメッセージやユーザーネームは、システムによって自動的に送信・使用が拒否されます。
         `;
       } else if (type === 'terms') {
         title.innerText = '利用規約';
@@ -572,13 +586,26 @@
       const name = document.getElementById('init-username').value.trim();
       if (!name) { alert('ユーザーネームを入力してください'); return; }
 
+      // 名前（ネーム）の自動NGワード判定
+      if (containsNgWord(name)) {
+        alert('この名前は使用できません（不適切な表現が含まれています）。');
+        return;
+      }
+
+      const bio = document.getElementById('init-bio').value.trim();
+      // 自己紹介文の自動NGワード判定
+      if (containsNgWord(bio)) {
+        alert('自己紹介文に不適切な表現が含まれているため使用できません。');
+        return;
+      }
+
       if (!isProfileInitialized) {
         const agreed = document.getElementById('chk-terms').checked;
         if (!agreed) { alert('利用規約および安心ガイドラインを読み、同意チェックを入れてください。'); return; }
       }
 
       myUserName = name;
-      myBio = document.getElementById('init-bio').value.trim();
+      myBio = bio;
 
       document.getElementById('header-badge-avatar').innerHTML = renderAvatarHTML(myAvatar, '24px');
       document.getElementById('header-badge-name').innerText = myUserName;
@@ -924,6 +951,12 @@
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
       if (!text) return;
+
+      // チャットメッセージの自動NGワード判定
+      if (containsNgWord(text)) {
+        alert('この言葉は送信できません（不適切な表現が含まれています）。');
+        return;
+      }
 
       if (isTypingSent && currentPartner) {
         isTypingSent = false;
