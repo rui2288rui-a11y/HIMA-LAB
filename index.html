@@ -667,7 +667,7 @@
       modal.style.display = 'flex';
     }
 
-    function saveInitialProfile() {
+async function saveInitialProfile() {
       const name = document.getElementById('init-username').value.trim();
       if (!name) { alert('ユーザーネームを入力してください'); return; }
 
@@ -691,6 +691,26 @@
 
       myUserName = name;
       myBio = bio;
+  if (!myAuthUserId) {
+  alert('ログイン情報を取得できませんでした。いったんログインし直してください。');
+  return;
+}
+
+const { error: profileError } = await supabaseClient
+  .from('profiles')
+  .upsert({
+    id: myAuthUserId,
+    username: myUserName,
+    gender: myGender,
+    avatar_url: myAvatar,
+    bio: myBio
+  });
+
+if (profileError) {
+  console.error('プロフィール保存エラー:', profileError);
+  alert('プロフィールの保存に失敗しました。');
+  return;
+}
       localStorage.setItem('resonance_profile', JSON.stringify({
         name: myUserName, avatar: myAvatar, gender: myGender, bio: myBio
       }));
