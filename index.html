@@ -8,128 +8,137 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   
   <style>
     :root {
+      --bg-base: #f8fafc;
+      --panel-bg: rgba(255, 255, 255, 0.85);
+      --panel-border: rgba(226, 232, 240, 0.8);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-color: #0284c7;
+      --accent-hover: #0369a1;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --input-bg: #f1f5f9;
+      --shadow-color: rgba(14, 165, 233, 0.12);
+    }
+
+    body.theme-dark {
       --bg-base: #06080d;
       --panel-bg: rgba(15, 21, 32, 0.85);
       --panel-border: rgba(255, 255, 255, 0.08);
       --text-primary: #f1f5f9;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
-      --accent-color: #2563eb;
-      --accent-hover: #1d4ed8;
+      --accent-color: #38bdf8;
+      --accent-hover: #0ea5e9;
       --danger-color: #ef4444;
       --success-color: #10b981;
-      --header-bg: rgba(6, 8, 13, 0.8);
+      --header-bg: rgba(6, 8, 13, 0.85);
       --input-bg: rgba(255, 255, 255, 0.05);
+      --shadow-color: rgba(56, 189, 248, 0.15);
     }
 
-    body.theme-light {
-      --bg-base: #f8fafc;
-      --panel-bg: rgba(255, 255, 255, 0.85);
-      --panel-border: rgba(0, 0, 0, 0.08);
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --accent-color: #2563eb;
-      --accent-hover: #1d4ed8;
-      --danger-color: #ef4444;
-      --success-color: #10b981;
-      --header-bg: rgba(255, 255, 255, 0.85);
-      --input-bg: rgba(0, 0, 0, 0.05);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans JP', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; height: 100dvh; overflow: hidden; position: relative; transition: background-color 0.3s, color 0.3s; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; height: 100dvh; overflow: hidden; position: relative; transition: background-color 0.4s, color 0.4s; }
 
     #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-    .app-container { position: relative; z-index: 1; height: 100vh; height: 100dvh; display: flex; flex-direction: column; backdrop-filter: blur(8px); }
+    .app-container { position: relative; z-index: 1; height: 100vh; height: 100dvh; display: flex; flex-direction: column; backdrop-filter: blur(12px); }
 
-    header { height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: var(--header-bg); flex-shrink: 0; z-index: 10; }
-    .brand-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
-    .brand-sub { font-size: 10px; color: var(--text-muted); }
-    .header-actions { display: flex; align-items: center; gap: 8px; }
-    .online-counter { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); background: var(--input-bg); border: 1px solid var(--panel-border); padding: 4px 10px; border-radius: 20px; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--success-color); box-shadow: 0 0 8px var(--success-color); }
+    header { height: 60px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: var(--header-bg); flex-shrink: 0; z-index: 10; backdrop-filter: blur(10px); }
+    .brand-title { font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; }
+    .brand-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .online-counter { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-secondary); background: var(--input-bg); border: 1px solid var(--panel-border); padding: 5px 12px; border-radius: 20px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
 
-    .view-section { display: none !important; width: 100%; height: calc(100vh - 96px); height: calc(100dvh - 96px); overflow: hidden; }
+    .user-profile-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; background: var(--input-bg); border: 1px solid var(--panel-border); padding: 4px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+    .user-profile-badge:hover { border-color: var(--accent-color); transform: translateY(-1px); box-shadow: 0 4px 12px var(--shadow-color); }
+
+    .view-section { display: none !important; width: 100%; height: calc(100vh - 100px); height: calc(100dvh - 100px); overflow: hidden; }
     
-    body.mode-pc #view-dashboard.active { display: grid !important; grid-template-columns: 1fr 340px; grid-template-rows: 1fr; gap: 16px; padding: 16px 24px; }
-    body.mode-pc #view-chat.active { display: grid !important; grid-template-columns: 1fr 280px; width: 100%; height: calc(100vh - 96px); }
+    body.mode-pc #view-dashboard.active { display: grid !important; grid-template-columns: 1fr 360px; grid-template-rows: 1fr; gap: 20px; padding: 20px 28px; }
+    body.mode-pc #view-chat.active { display: grid !important; grid-template-columns: 1fr 300px; width: 100%; height: calc(100vh - 100px); }
     
     body.mode-mobile #view-dashboard.active { display: flex !important; flex-direction: column; gap: 12px; padding: 12px; overflow-y: auto; }
-    body.mode-mobile #view-dashboard .viewport-panel { min-height: 140px; padding: 16px 12px; }
-    body.mode-mobile #view-dashboard .sidebar-panel { min-height: 300px; }
+    body.mode-mobile #view-dashboard .viewport-panel { min-height: 160px; padding: 20px 16px; }
+    body.mode-mobile #view-dashboard .sidebar-panel { min-height: 320px; }
     
-    body.mode-mobile #view-chat.active { display: flex !important; flex-direction: column; width: 100%; height: calc(100vh - 96px); height: calc(100dvh - 96px); position: relative; }
+    body.mode-mobile #view-chat.active { display: flex !important; flex-direction: column; width: 100%; height: calc(100vh - 100px); height: calc(100dvh - 100px); position: relative; }
     body.mode-mobile #view-chat .sidebar-panel { display: none; }
     body.mode-mobile .chat-main { height: 100%; display: flex; flex-direction: column; position: relative; }
     body.mode-mobile .chat-messages { flex: 1; padding-bottom: 90px; }
     body.mode-mobile .chat-input-area { position: absolute; bottom: 0; left: 0; right: 0; background: var(--header-bg); border-top: 1px solid var(--panel-border); padding: 10px 12px; z-index: 20; }
 
-    .viewport-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 24px; }
-    .sidebar-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header { padding: 12px 16px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
+    .viewport-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 32px; box-shadow: 0 10px 30px var(--shadow-color); backdrop-filter: blur(10px); }
+    .sidebar-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px var(--shadow-color); backdrop-filter: blur(10px); }
+    .sidebar-header { padding: 14px 18px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 700; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
     .sidebar-content { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
 
-    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-    .user-item:hover { background: rgba(255,255,255,0.08); }
-    .user-item.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.15); }
+    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .user-item:hover { background: rgba(2, 132, 199, 0.05); border-color: var(--accent-color); transform: translateY(-1px); }
+    .user-item.selected { border-color: var(--accent-color); background: rgba(2, 132, 199, 0.1); box-shadow: 0 4px 12px var(--shadow-color); }
 
-    .avatar-icon-img { border-radius: 50%; object-fit: cover; background: #334155; display: flex; align-items: center; justify-content: center; }
+    .avatar-icon-img { border-radius: 50%; object-fit: cover; background: #e2e8f0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; flex: 1; }
-    .chat-header { padding: 12px 16px; border-bottom: 1px solid var(--panel-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); }
-    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; position: relative; }
+    .chat-header { padding: 14px 20px; border-bottom: 1px solid var(--panel-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); }
+    .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; position: relative; }
 
     .message-item { display: flex; flex-direction: column; max-width: 75%; gap: 4px; position: relative; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
-    .message-item.system { align-self: center; align-items: center; max-width: 100%; margin: 6px 0; }
+    .message-item.system { align-self: center; align-items: center; max-width: 100%; margin: 8px 0; }
     
-    .message-bubble-wrapper { display: flex; align-items: flex-end; gap: 6px; }
+    .message-bubble-wrapper { display: flex; align-items: flex-end; gap: 8px; }
     .message-item.self .message-bubble-wrapper { flex-direction: row-reverse; }
 
-    .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 10px 14px; border-radius: 12px; font-size: 13px; word-break: break-all; }
-    .message-item.self .message-bubble { background: var(--accent-color); color: #fff; border: none; }
-    .message-item.system .message-bubble { background: var(--input-bg); border: none; color: var(--text-secondary); font-size: 11px; padding: 4px 12px; border-radius: 20px; }
-    .message-item.deleted .message-bubble { background: rgba(255,255,255,0.05); color: var(--text-muted); font-style: italic; border: 1px dashed var(--panel-border); }
+    .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 14px; font-size: 14px; word-break: break-all; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+    .message-item.self .message-bubble { background: var(--accent-color); color: #fff; border: none; box-shadow: 0 4px 12px var(--shadow-color); }
+    .message-item.system .message-bubble { background: var(--input-bg); border: none; color: var(--text-secondary); font-size: 12px; padding: 6px 16px; border-radius: 20px; font-weight: 500; }
+    .message-item.deleted .message-bubble { background: var(--input-bg); color: var(--text-muted); font-style: italic; border: 1px dashed var(--panel-border); }
 
-    .message-status-meta { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .message-status-meta { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 3px; font-weight: 500; }
     .message-item.self .message-status-meta { justify-content: flex-end; }
 
-    .btn-unsend { font-size: 10px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+    .btn-unsend { font-size: 11px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: 500; transition: color 0.2s; }
     .btn-unsend:hover { color: var(--danger-color); text-decoration: underline; }
 
-    .chat-media-preview { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 4px; object-fit: cover; }
+    .chat-media-preview { max-width: 100%; max-height: 240px; border-radius: 10px; margin-top: 4px; object-fit: cover; }
 
-    .typing-indicator-box { padding: 4px 16px; font-size: 11px; color: var(--text-secondary); font-style: italic; min-height: 20px; display: flex; align-items: center; gap: 6px; background: var(--header-bg); }
+    .typing-indicator-box { padding: 6px 20px; font-size: 12px; color: var(--accent-color); font-weight: 600; font-style: italic; min-height: 24px; display: flex; align-items: center; gap: 8px; background: var(--header-bg); border-top: 1px solid var(--panel-border); }
 
-    .chat-input-area { padding: 12px 16px; border-top: 1px solid var(--panel-border); display: flex; gap: 8px; align-items: center; background: var(--header-bg); }
-    .chat-input { flex: 1; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; font-size: 15px; }
+    .chat-input-area { padding: 14px 20px; border-top: 1px solid var(--panel-border); display: flex; gap: 10px; align-items: center; background: var(--header-bg); }
+    .chat-input { flex: 1; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 12px 16px; color: var(--text-primary); outline: none; font-size: 15px; transition: border-color 0.2s; }
+    .chat-input:focus { border-color: var(--accent-color); }
 
-    .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-    .btn-action-primary:hover { background: var(--accent-hover); }
-    .btn-action-primary:disabled { background: #334155; cursor: not-allowed; opacity: 0.6; }
-    .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .btn-action-secondary:hover { background: var(--input-bg); }
-    .btn-action-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger-color); color: #fca5a5; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; box-shadow: 0 4px 14px var(--shadow-color); }
+    .btn-action-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-action-primary:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.6; box-shadow: none; transform: none; }
+    
+    .btn-action-secondary { background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+    .btn-action-secondary:hover { background: rgba(2, 132, 199, 0.05); border-color: var(--accent-color); }
+    
+    .btn-action-danger { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger-color); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-action-danger:hover { background: rgba(239, 68, 68, 0.2); }
 
-    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(12px); padding: 16px; }
-    .modal-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; width: 460px; max-width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(15, 23, 42, 0.65); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(16px); padding: 16px; }
+    .modal-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 20px; padding: 32px; width: 460px; max-width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); backdrop-filter: blur(20px); }
 
-    .avatar-selector { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; }
-    .avatar-option { font-size: 22px; padding: 6px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: var(--input-bg); }
-    .avatar-option.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.3); }
+    .avatar-selector { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    .avatar-option { font-size: 26px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: var(--input-bg); transition: all 0.2s; }
+    .avatar-option.selected { border-color: var(--accent-color); background: rgba(2, 132, 199, 0.15); transform: scale(1.1); }
 
     .call-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; background: #000; border-radius: 12px; padding: 8px; min-height: 200px; }
     .call-video-box { position: relative; width: 100%; height: 180px; background: #1e293b; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .call-video-box video { width: 100%; height: 100%; object-fit: cover; }
-    .video-label { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+    .video-label { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
 
-    footer { height: 40px; background: var(--header-bg); border-top: 1px solid var(--panel-border); display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; z-index: 10; padding: 0 12px; overflow-x: auto; white-space: nowrap; }
-    footer a { color: var(--text-secondary); text-decoration: none; cursor: pointer; transition: color 0.2s; }
+    footer { height: 44px; background: var(--header-bg); border-top: 1px solid var(--panel-border); display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; z-index: 10; padding: 0 16px; overflow-x: auto; white-space: nowrap; }
+    footer a { color: var(--text-secondary); text-decoration: none; cursor: pointer; transition: color 0.2s; font-weight: 500; }
     footer a:hover { color: var(--accent-color); text-decoration: underline; }
     footer span.sep { opacity: 0.3; }
 
@@ -145,51 +154,54 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body class="mode-pc theme-dark">
+<body class="mode-pc theme-light">
 
   <div id="canvas-container"></div>
 
+  <!-- 1. プロフィール設定・変更モーダル（初期＆常時変更用） -->
   <div id="modal-profile" class="modal-backdrop">
     <div class="modal-card">
-      <div style="font-size:16px; font-weight:700; text-align:center;">プロフィール設定</div>
+      <div style="font-size:18px; font-weight:700; text-align:center; color:var(--text-primary);" id="profile-modal-title">HIMA-LABへようこそ</div>
+      <p style="font-size:12px; color:var(--text-secondary); text-align:center; margin-top:-8px;" id="profile-modal-desc">上品で心地よい大人のリアルタイムコミュニティ</p>
 
-      <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">アイコン選択</label>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">アバターアイコン</label>
         <div class="avatar-selector">
-          <span class="avatar-option selected" onclick="selectPresetAvatar('🐱', this)">🐱</span>
-          <span class="avatar-option" onclick="selectPresetAvatar('🐶', this)">🐶</span>
-          <span class="avatar-option" onclick="selectPresetAvatar('🦊', this)">🦊</span>
-          <span class="avatar-option" onclick="selectPresetAvatar('🐼', this)">🐼</span>
-          <span class="avatar-option" onclick="selectPresetAvatar('🐯', this)">🐯</span>
+          <span class="avatar-option selected" onclick="selectPresetAvatar('✨', this)">✨</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('🌙', this)">🌙</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('🍃', this)">🍃</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('☕', this)">☕</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('🎨', this)">🎨</span>
         </div>
-        <div style="text-align:center;">
-          <label for="custom-avatar-input" class="btn-action-secondary" style="padding:4px 12px; font-size:11px; cursor:pointer; display:inline-block;">📁 画像を選択</label>
+        <div style="text-align:center; margin-top:4px;">
+          <label for="custom-avatar-input" class="btn-action-secondary" style="padding:6px 14px; font-size:12px; cursor:pointer; display:inline-block;">📁 オリジナル画像を選択</label>
           <input type="file" id="custom-avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
         </div>
         <div id="avatar-preview-container" style="display:none; text-align:center;">
-          <img id="avatar-preview-img" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color);">
+          <img id="avatar-preview-img" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-color); box-shadow: 0 4px 12px var(--shadow-color);">
         </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">ユーザーネーム（必須）</label>
-        <input type="text" id="init-username" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:var(--text-primary);" placeholder="例: ゲスト" maxlength="15">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">ユーザーネーム（必須）</label>
+        <input type="text" id="init-username" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); font-size:14px; outline:none;" placeholder="例: ゲスト" maxlength="15">
       </div>
 
       <div style="display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">自己紹介文・一言（任意）</label>
-        <textarea id="init-bio" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:var(--text-primary); height:50px; resize:none;" placeholder="自由に書いてください（空欄OK）" maxlength="60"></textarea>
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:700;">一言自己紹介・ステータス（任意）</label>
+        <textarea id="init-bio" style="background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); height:60px; resize:none; font-size:14px; outline:none;" placeholder="今の気分や趣味を気軽にどうぞ" maxlength="60"></textarea>
       </div>
 
-      <button class="btn-action-primary" style="margin-top:6px;" onclick="saveInitialProfile()">コミュニティに入る</button>
-      <p style="font-size:10px; color:var(--text-muted); text-align:center;">※利用規約・安心安全ガイドラインは画面最下部からいつでもご確認いただけます</p>
+      <button class="btn-action-primary" style="margin-top:6px;" onclick="saveInitialProfile()">プロフィールを決定して参加する</button>
+      <p style="font-size:10px; color:var(--text-muted); text-align:center;">※安心安全なコミュニティ維持のため利用規約をご確認の上ご参加ください</p>
     </div>
   </div>
 
+  <!-- 2. チャット申請送信中モーダル -->
   <div id="modal-requesting" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; gap:16px;">
-      <div style="font-size:15px; font-weight:700;">マッチング中・応答待機中</div>
-      <p style="font-size:12px; color:var(--text-secondary);"><span id="request-target-name">相手</span> の応答を待っています...</p>
+      <div style="font-size:16px; font-weight:700;">マッチング中・応答待機中</div>
+      <p style="font-size:13px; color:var(--text-secondary);"><span id="request-target-name" style="font-weight:700; color:var(--accent-color);">相手</span> からの応答を待っています...</p>
       
       <div class="spinner"></div>
 
@@ -197,32 +209,35 @@
     </div>
   </div>
 
+  <!-- 3. チャット申請受信モーダル -->
   <div id="modal-incoming-request" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; gap:16px;">
-      <div style="font-size:15px; font-weight:700;">チャットのリクエストが届きました</div>
-      <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+      <div style="font-size:16px; font-weight:700;">チャットのリクエストが届きました</div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:8px; background:var(--input-bg); padding:16px; border-radius:12px; border:1px solid var(--panel-border);">
         <div id="incoming-req-avatar"></div>
-        <div style="font-weight:700; font-size:14px;" id="incoming-req-name">相手名</div>
+        <div style="font-weight:700; font-size:15px;" id="incoming-req-name">相手名</div>
         <div style="font-size:12px; color:var(--text-secondary);" id="incoming-req-bio"></div>
       </div>
       <div style="display:flex; gap:12px; margin-top:8px;">
-        <button class="btn-action-secondary" style="flex:1;" onclick="respondChatRequest(false)">拒否（キャンセル）</button>
+        <button class="btn-action-secondary" style="flex:1;" onclick="respondChatRequest(false)">見送る</button>
         <button class="btn-action-primary" style="flex:1;" onclick="respondChatRequest(true)">チャットを始める</button>
       </div>
     </div>
   </div>
 
+  <!-- 4. 利用規約・ポリシー確認用モーダル -->
   <div id="modal-info-policy" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
-      <div id="info-modal-title" style="font-size:16px; font-weight:700; text-align:center;">利用規約</div>
-      <div id="info-modal-body" style="font-size:12px; line-height:1.7; color:var(--text-secondary); max-height:320px; overflow-y:auto; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:8px; padding:12px;"></div>
+      <div id="info-modal-title" style="font-size:18px; font-weight:700; text-align:center;">利用規約</div>
+      <div id="info-modal-body" style="font-size:13px; line-height:1.8; color:var(--text-secondary); max-height:320px; overflow-y:auto; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:12px; padding:16px;"></div>
       <button class="btn-action-primary" onclick="closeInfoModal()">閉じる</button>
     </div>
   </div>
 
+  <!-- 5. 通話関連モーダル -->
   <div id="modal-call-status" class="modal-backdrop" style="display:none;">
     <div class="modal-card" style="text-align:center; width:520px;">
-      <div id="call-status-title" style="font-size:16px; font-weight:700;">通話中</div>
+      <div id="call-status-title" style="font-size:18px; font-weight:700;">通話中</div>
       
       <div class="call-container" id="call-video-container">
         <div class="call-video-box">
@@ -242,7 +257,7 @@
       </div>
 
       <div id="call-outgoing-actions" style="display:none; margin-top:10px;">
-        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">相手の応答を呼び出しています...</p>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">相手の応答を呼び出しています...</p>
         <button class="btn-action-secondary" onclick="cancelCallSend()">通話をキャンセル</button>
       </div>
 
@@ -253,6 +268,7 @@
     </div>
   </div>
 
+  <!-- メインレイアウト -->
   <div class="app-container">
     <header>
       <div>
@@ -260,20 +276,25 @@
         <span class="brand-sub">Realtime Community</span>
       </div>
       <div class="header-actions">
-        <button class="btn-action-secondary" style="padding:4px 10px; font-size:11px;" id="theme-toggle-btn" onclick="toggleTheme()">🌙 ダーク</button>
-        <button class="btn-action-secondary" style="padding:4px 10px; font-size:11px;" id="mode-toggle-btn" onclick="toggleDisplayMode()">📱 スマホ表示</button>
+        <!-- いつでもプロフ変更できるバッジ -->
+        <div class="user-profile-badge" id="header-user-badge" onclick="openProfileModal(true)" title="クリックしてプロフィールを編集">
+          <div id="header-badge-avatar"></div>
+          <span id="header-badge-name">ゲスト</span>
+        </div>
+        <button class="btn-action-secondary" style="padding:6px 12px; font-size:12px;" id="theme-toggle-btn" onclick="toggleTheme()">🌙 ダーク</button>
+        <button class="btn-action-secondary" style="padding:6px 12px; font-size:12px;" id="mode-toggle-btn" onclick="toggleDisplayMode()">📱 スマホ</button>
         <div class="online-counter"><div class="status-dot"></div><span id="online-count">0 online</span></div>
-        <div id="user-profile-badge" style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600;"></div>
       </div>
     </header>
 
+    <!-- ダッシュボード -->
     <div id="view-dashboard" class="view-section active">
       <section class="viewport-panel">
-        <h2 style="font-size:18px;">オンラインユーザーを選択してチャット開始</h2>
-        <p style="font-size:12px; color:var(--text-secondary); max-width:400px; line-height:1.6;">
+        <h2 style="font-size:20px; font-weight:700; letter-spacing:-0.5px;">オンラインユーザーを選択してチャット開始</h2>
+        <p style="font-size:13px; color:var(--text-secondary); max-width:420px; line-height:1.7;">
           右側（スマホは下記）の「マッチ待ち一覧」から話したい相手をタップし、「選択した相手とチャットを開始」ボタンを押してください。
         </p>
-        <div id="selected-user-box" style="margin-top:10px; font-size:13px; font-weight:600; color:var(--accent-color);">
+        <div id="selected-user-box" style="margin-top:6px; font-size:14px; font-weight:700; color:var(--accent-color);">
           相手が選択されていません
         </div>
         <button class="btn-action-primary" id="btn-start-chat-request" onclick="sendChatRequest()" disabled>選択した相手とチャットを開始</button>
@@ -287,15 +308,16 @@
       </aside>
     </div>
 
+    <!-- チャット画面 -->
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header">
-          <span id="chat-title" style="font-size:14px;">チャットルーム</span>
+          <span id="chat-title" style="font-size:15px;">チャットルーム</span>
           
           <div style="display:flex; gap:8px; align-items:center;">
-            <button class="btn-action-secondary" style="padding:4px 8px; font-size:11px;" onclick="startCall(false)">📞 音声通話</button>
-            <button class="btn-action-secondary" style="padding:4px 8px; font-size:11px;" onclick="startCall(true)">🎥 ビデオ通話</button>
-            <button class="btn-action-secondary" style="padding:4px 10px; font-size:11px;" onclick="leaveChat(true)">退室する</button>
+            <button class="btn-action-secondary" style="padding:6px 10px; font-size:12px;" onclick="startCall(false)">📞 音声通話</button>
+            <button class="btn-action-secondary" style="padding:6px 10px; font-size:12px;" onclick="startCall(true)">🎥 ビデオ通話</button>
+            <button class="btn-action-secondary" style="padding:6px 12px; font-size:12px;" onclick="leaveChat(true)">退室する</button>
           </div>
         </div>
         
@@ -308,10 +330,10 @@
         </div>
 
         <div class="chat-input-area">
-          <label for="media-upload-input" class="btn-action-secondary" style="padding:8px 12px; font-size:14px; cursor:pointer;" title="画像・動画を送信">📷/🎥</label>
+          <label for="media-upload-input" class="btn-action-secondary" style="padding:10px 14px; font-size:14px; cursor:pointer;" title="画像・動画を送信">📷/🎥</label>
           <input type="file" id="media-upload-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaUpload(event)">
           <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." oninput="handleTypingInput()" onkeypress="if(event.key==='Enter') sendMessage()">
-          <button class="btn-action-primary" style="padding:10px 14px;" onclick="sendMessage()">送信</button>
+          <button class="btn-action-primary" style="padding:12px 20px;" onclick="sendMessage()">送信</button>
         </div>
       </div>
       
@@ -321,6 +343,7 @@
       </aside>
     </div>
 
+    <!-- フッター領域 -->
     <footer>
       <a onclick="openInfoModal('terms')">利用規約</a>
       <span class="sep">|</span>
@@ -329,7 +352,7 @@
       <a onclick="openInfoModal('privacy')">プライバシーポリシー</a>
       <span class="sep">|</span>
       <a onclick="openInfoModal('company')">運営情報</a>
-      <span style="margin-left: auto; opacity: 0.6;">© 2026 HIMA-LAB Inc.</span>
+      <span style="margin-left: auto; opacity: 0.7;">© 2026 HIMA-LAB Inc.</span>
     </footer>
   </div>
 
@@ -346,8 +369,9 @@
 
     const myUserId = 'user_' + Math.floor(Math.random() * 100000);
     let myUserName = '';
-    let myAvatar = '🐱';
+    let myAvatar = '✨';
     let myBio = '';
+    let isProfileInitialized = false;
 
     let onlineUsers = [];
     let activeChatUserIds = [];
@@ -366,16 +390,15 @@
     let pendingCallSignal = null;
     const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-    // 効果音再生用 (Web Audio API)
     function playNotificationSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -446,14 +469,14 @@
       document.getElementById('modal-info-policy').style.display = 'none';
     }
 
-    let currentTheme = 'dark';
+    let currentTheme = 'light';
     function toggleTheme() {
-      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
       document.body.className = `mode-${currentMode} theme-${currentTheme}`;
-      document.getElementById('theme-toggle-btn').innerText = currentTheme === 'dark' ? '🌙 ダーク' : '☀️ ライト';
+      document.getElementById('theme-toggle-btn').innerText = currentTheme === 'dark' ? '☀️ ライト' : '🌙 ダーク';
       if (planeMat) {
-        planeMat.color.setHex(currentTheme === 'dark' ? 0x3b82f6 : 0x0284c7);
-        planeMat.opacity = currentTheme === 'dark' ? 0.15 : 0.25;
+        planeMat.color.setHex(currentTheme === 'dark' ? 0x0284c7 : 0x38bdf8);
+        planeMat.opacity = currentTheme === 'dark' ? 0.2 : 0.12;
       }
     }
 
@@ -487,11 +510,21 @@
       reader.readAsDataURL(file);
     }
 
-    function renderAvatarHTML(avatarData, size = '32px') {
+    function renderAvatarHTML(avatarData, size = '28px') {
       if (avatarData && avatarData.startsWith('data:image')) {
         return `<img src="${avatarData}" class="avatar-icon-img" style="width:${size}; height:${size};">`;
       }
-      return `<div class="avatar-icon-img" style="width:${size}; height:${size}; font-size:calc(${size} * 0.5);">${avatarData || '🐱'}</div>`;
+      return `<div class="avatar-icon-img" style="width:${size}; height:${size}; font-size:calc(${size} * 0.5);">${avatarData || '✨'}</div>`;
+    }
+
+    function openProfileModal(isEdit = false) {
+      const modal = document.getElementById('modal-profile');
+      document.getElementById('profile-modal-title').innerText = isEdit ? 'プロフィール編集' : 'HIMA-LABへようこそ';
+      document.getElementById('profile-modal-desc').innerText = isEdit ? 'いつでも自由に変更できます' : '上品で心地よい大人のリアルタイムコミュニティ';
+      
+      document.getElementById('init-username').value = myUserName || '';
+      document.getElementById('init-bio').value = myBio || '';
+      modal.style.display = 'flex';
     }
 
     function saveInitialProfile() {
@@ -501,10 +534,20 @@
       myUserName = name;
       myBio = document.getElementById('init-bio').value.trim();
 
-      document.getElementById('user-profile-badge').innerHTML = `${renderAvatarHTML(myAvatar, '24px')} <span>${myUserName}</span>`;
+      document.getElementById('header-badge-avatar').innerHTML = renderAvatarHTML(myAvatar, '24px');
+      document.getElementById('header-badge-name').innerText = myUserName;
       document.getElementById('modal-profile').style.display = 'none';
 
-      initRealtime();
+      if (!isProfileInitialized) {
+        isProfileInitialized = true;
+        initRealtime();
+      } else {
+        // すでに接続済みの場合は最新のプロフィールをブロードキャスト同期
+        if (room) {
+          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, bio: myBio });
+          broadcastActiveStatus();
+        }
+      }
     }
 
     let room;
@@ -533,7 +576,7 @@
         const data = payload.payload;
         if (data.targetId === myUserId && !blockedUsers.includes(data.fromId)) {
           pendingIncomingReq = data;
-          document.getElementById('incoming-req-avatar').innerHTML = renderAvatarHTML(data.fromAvatar, '60px');
+          document.getElementById('incoming-req-avatar').innerHTML = renderAvatarHTML(data.fromAvatar, '50px');
           document.getElementById('incoming-req-name').innerText = data.fromName;
           document.getElementById('incoming-req-bio').innerText = data.fromBio || '（自己紹介未設定）';
           document.getElementById('modal-incoming-request').style.display = 'flex';
@@ -546,11 +589,10 @@
         if (data.targetId === myUserId) {
           document.getElementById('modal-requesting').style.display = 'none';
           if (data.accepted) {
-            alert(`${data.responderName} がチャットを開始しました！`);
             currentPartner = { id: data.responderId, name: data.responderName, avatar: data.responderAvatar, bio: data.responderBio };
             openDirectChat();
           } else {
-            alert(`${data.responderName} がリクエストをキャンセル（拒否）しました。`);
+            alert(`${data.responderName} がリクエストを見送りました。`);
           }
         }
       });
@@ -571,21 +613,17 @@
         if (blockedUsers.includes(data.senderId)) return;
         if (currentPartner && (data.senderId === myUserId || data.senderId === currentPartner.id)) {
           appendMessage(data);
-          
-          // 相手からのメッセージであれば、自動既読を送信
           if (data.senderId === currentPartner.id) {
             playNotificationSound();
             sendReadReceipt(data.msgId);
           }
         } else if (!currentPartner && data.senderId !== myUserId) {
-          // チャット画面外でメッセージを受信した場合の未読バッジ＆通知
           unreadCount++;
           document.getElementById('brand-title-text').innerText = `HIMA-LAB (${unreadCount})`;
           playNotificationSound();
         }
       });
 
-      // 既読シグナルの受信
       room.on('broadcast', { event: 'chat_read' }, (payload) => {
         const data = payload.payload;
         if (currentPartner && data.readerId === currentPartner.id) {
@@ -593,7 +631,7 @@
         }
       });
 
-      // 入力中シグナルの受信
+      // 入力中シグナルの正確なハンドリング
       room.on('broadcast', { event: 'typing_status' }, (payload) => {
         const data = payload.payload;
         if (currentPartner && data.senderId === currentPartner.id) {
@@ -638,7 +676,7 @@
             document.getElementById('call-controls').style.display = 'flex';
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
           } else {
-            alert(`${currentPartner.name} が通話を拒否またはキャンセルしました。`);
+            alert(`${currentPartner.name} が通話を拒否しました。`);
             endCall(false);
           }
         } else if (data.signalType === 'call-cancel') {
@@ -682,7 +720,7 @@
       });
 
       if (filteredUsers.length === 0) {
-        sidebar.innerHTML = `<div style="text-align:center; font-size:11px; color:var(--text-muted); padding:20px 0;">現在マッチ待ちのユーザーはいません</div>`;
+        sidebar.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:24px 0;">現在マッチ待ちのユーザーはいません</div>`;
         return;
       }
 
@@ -693,13 +731,13 @@
         return `
           <div class="user-item ${isSelected ? 'selected' : ''}" onclick="selectUserFromList('${u.user_id}')">
             <div style="display:flex; align-items:center; gap:10px;">
-              ${renderAvatarHTML(u.avatar, '32px')}
+              ${renderAvatarHTML(u.avatar, '36px')}
               <div>
-                <div style="font-size:13px; font-weight:600;">${u.username}</div>
-                <div style="font-size:10px; color:var(--text-muted);">${u.bio || '自己紹介なし'}</div>
+                <div style="font-size:13px; font-weight:700;">${u.username}</div>
+                <div style="font-size:11px; color:var(--text-muted);">${u.bio || '自己紹介なし'}</div>
               </div>
             </div>
-            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', '${u.username}')">遮断</button>` : `<span style="font-size:10px; color:var(--danger-color);">ブロック済</span>`}
+            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', '${u.username}')">遮断</button>` : `<span style="font-size:11px; color:var(--danger-color);">ブロック済</span>`}
           </div>
         `;
       }).join('');
@@ -786,11 +824,11 @@
       document.getElementById('chat-messages').innerHTML = '<div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>';
       document.getElementById('typing-indicator-box').style.display = 'none';
       document.getElementById('chat-partner-info').innerHTML = `
-        <div style="text-align:center; padding:16px 0; display:flex; flex-direction:column; align-items:center; gap:8px;">
-          ${renderAvatarHTML(currentPartner.avatar, '60px')}
-          <div style="font-weight:700; font-size:15px;">${currentPartner.name}</div>
-          <div style="font-size:12px; color:var(--text-secondary); max-width:200px;">${currentPartner.bio || '自己紹介なし'}</div>
-          <button class="btn-action-danger" style="margin-top:14px;" onclick="blockUser('${currentPartner.id}', '${currentPartner.name}')">🚫 相手をブロック</button>
+        <div style="text-align:center; padding:20px 0; display:flex; flex-direction:column; align-items:center; gap:10px;">
+          ${renderAvatarHTML(currentPartner.avatar, '64px')}
+          <div style="font-weight:700; font-size:16px;">${currentPartner.name}</div>
+          <div style="font-size:12px; color:var(--text-secondary); max-width:220px; line-height:1.5;">${currentPartner.bio || '自己紹介なし'}</div>
+          <button class="btn-action-danger" style="margin-top:16px;" onclick="blockUser('${currentPartner.id}', '${currentPartner.name}')">🚫 相手をブロック</button>
         </div>
       `;
       switchView('view-chat');
@@ -812,7 +850,6 @@
       switchView('view-dashboard');
     }
 
-    // 入力中イベントの送信処理
     function handleTypingInput() {
       if (!currentPartner || !room) return;
       if (!isTypingSent) {
@@ -848,7 +885,7 @@
         });
       }
 
-      const msgId = 'msg_' + Date.now + '_' + Math.random().toString(36).substr(2, 5);
+      const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
       room.send({
         type: 'broadcast',
         event: 'chat_message',
@@ -1123,7 +1160,7 @@
     container.appendChild(renderer.domElement);
 
     const planeGeo = new THREE.PlaneGeometry(120, 80, 50, 40);
-    const planeMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, wireframe: true, transparent: true, opacity: 0.15 });
+    const planeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.12 });
     const plane = new THREE.Mesh(planeGeo, planeMat);
     plane.rotation.x = -Math.PI / 3;
     scene.add(plane);
@@ -1131,10 +1168,10 @@
     let count = 0;
     function animate() {
       requestAnimationFrame(animate);
-      count += 0.02;
+      count += 0.015;
       const posArr = planeGeo.attributes.position.array;
       for (let i = 0; i < posArr.length; i += 3) {
-        posArr[i + 2] = Math.sin(posArr[i] * 0.2 + count) * 1.5;
+        posArr[i + 2] = Math.sin(posArr[i] * 0.2 + count) * 1.2;
       }
       planeGeo.attributes.position.needsUpdate = true;
       renderer.render(scene, camera);
