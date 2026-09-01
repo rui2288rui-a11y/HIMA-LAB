@@ -43,7 +43,7 @@
     .btn-auth:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-auth.primary { background: var(--text-primary); color: var(--bg-base); border: none; font-weight: 600; }
 
-    /* 全ビュー共通スタイル（非表示制御） */
+    /* 全ビュー共通スタイル */
     .view-section { display: none !important; width: 100%; height: calc(100vh - 64px); overflow: hidden; }
 
     /* 画面別の表示レイアウト定義 */
@@ -74,18 +74,37 @@
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
     .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
 
-    /* チャット画面スタイル (レイアウト崩れ修正) */
-    .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; }
+    /* チャット画面スタイル (最下部固定構造へ変更) */
+    .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; position: relative; }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; flex-shrink: 0; }
-    .chat-messages { flex: 1; min-height: 0; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    
+    /* スクロールエリア（下から上へ並べることで最初から一番下に固定） */
+    .chat-messages {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 16px;
+    }
+    .chat-messages-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
     .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
     .message-sender { font-size: 11px; color: var(--text-muted); }
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; word-break: break-all; }
     .message-item.self .message-bubble { background: var(--accent-color); border: none; }
+    .chat-img-attachment { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 4px; border: 1px solid var(--panel-border); display: block; }
     
-    .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; flex-shrink: 0; background: rgba(6, 8, 13, 0.8); }
+    /* 入力エリア */
+    .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; flex-shrink: 0; background: rgba(6, 8, 13, 0.95); align-items: center; }
     .chat-input { flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; }
+    .btn-icon { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); color: var(--text-secondary); width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 18px; flex-shrink: 0; }
+    .btn-icon:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
 
     /* ボタン共通 */
     .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px var(--accent-glow); transition: all 0.2s; }
@@ -163,14 +182,21 @@
     <div id="view-chat" class="view-section">
       <div class="chat-main">
         <div class="chat-header" id="chat-title">チャットルーム</div>
-        <div class="chat-messages" id="chat-messages">
-          <div class="message-item">
-            <span class="message-sender">System</span>
-            <div class="message-bubble">マッチングが成功しました！会話を始めてみましょう。</div>
+        
+        <div class="chat-messages" id="chat-messages-container">
+          <div class="chat-messages-inner" id="chat-messages">
+            <div class="message-item">
+              <span class="message-sender">System</span>
+              <div class="message-bubble">マッチングが成功しました！会話を始めてみましょう。</div>
+            </div>
           </div>
         </div>
+
         <div class="chat-input-area">
-          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+          <button class="btn-icon" onclick="document.getElementById('file-input').click()" title="画像を送信">📷</button>
+          
+          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力または画像を貼り付け (Ctrl+V)..." onkeypress="if(event.key==='Enter') sendMessage()">
           <button class="btn-action-primary" style="padding:0 24px;" onclick="sendMessage()">送信</button>
           <button class="btn-action-secondary" onclick="leaveChat()" style="padding:0 16px;">退室</button>
         </div>
@@ -256,7 +282,7 @@
 
     room.on('broadcast', { event: 'chat_message' }, (payload) => {
       const msgData = payload.payload;
-      appendMessage(msgData.sender, msgData.text, msgData.senderId === myUserId);
+      appendMessage(msgData.sender, msgData.text, msgData.senderId === myUserId, msgData.imageUrl);
     });
 
     room.subscribe(async (status) => {
@@ -294,10 +320,11 @@
       switchView('view-matched');
     }
 
-    function sendMessage() {
+    // メッセージ送信
+    function sendMessage(imageUrl = null) {
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
-      if (!text) return;
+      if (!text && !imageUrl) return;
 
       room.send({
         type: 'broadcast',
@@ -305,23 +332,63 @@
         payload: {
           sender: myUserName,
           senderId: myUserId,
-          text: text
+          text: text,
+          imageUrl: imageUrl
         }
       });
 
       input.value = '';
     }
 
-    function appendMessage(sender, text, isSelf) {
+    // 画像選択時の処理
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        processAndSendImage(file);
+      }
+    }
+
+    // クリップボードからの画像ペースト（Ctrl + V）の監視
+    document.getElementById('chat-input').addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          processAndSendImage(blob);
+          e.preventDefault();
+          break;
+        }
+      }
+    });
+
+    // 画像をBase64に変換して送信
+    function processAndSendImage(file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        sendMessage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function appendMessage(sender, text, isSelf, imageUrl = null) {
       const container = document.getElementById('chat-messages');
       const msgDiv = document.createElement('div');
       msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
-      msgDiv.innerHTML = `
-        <span class="message-sender">${sender}</span>
-        <div class="message-bubble">${escapeHtml(text)}</div>
-      `;
+      
+      let content = `<span class="message-sender">${sender}</span>`;
+      if (text) {
+        content += `<div class="message-bubble">${escapeHtml(text)}</div>`;
+      }
+      if (imageUrl) {
+        content += `<img src="${imageUrl}" class="chat-img-attachment" alt="Attached Image">`;
+      }
+      
+      msgDiv.innerHTML = content;
       container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
+
+      // 一番下にスクロールを維持
+      const scrollArea = document.getElementById('chat-messages-container');
+      scrollArea.scrollTop = 0;
     }
 
     function escapeHtml(str) {
