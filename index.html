@@ -3,246 +3,204 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>HIMA-LAB - Find, Group, or 1-on-1 Chat</title>
-  <!-- Supabase JS library (将来の連携用) -->
+  <title>HIMA-LAB - リアルタイムマッチング</title>
+  <!-- Supabase JS library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- モダンなフォント -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
   <style>
-    /* 参考画像のデザインを忠実に再現するCSS */
     :root {
-      --bg-dark: #121620; /* 濃い紺色の背景 */
-      --bg-card: #1d2230; /* 少し明るい紺色のカード */
-      --bg-active: #252b3d; /* アクティブな要素 */
+      --bg-dark: #121620; /* 背景 */
+      --bg-card: #1d2230; /* カード・サイドバー */
       --border-color: rgba(255, 255, 255, 0.06);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
-      --accent-blue: #3b82f6; /* 鮮やかなブルー */
-      --btn-grad: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      --accent-blue: #3b82f6; /* ブルー */
+      --accent-grad: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      --green: #10b981;
     }
 
     * { box-sizing: border-box; font-family: 'Zen Maru Gothic', sans-serif; transition: background 0.2s, color 0.2s; }
     body { margin: 0; background: var(--bg-dark); color: var(--text-main); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     
-    /* PC表示時はフレーム、スマホ表示時は全画面 */
     .app { width: 100%; max-width: 1440px; height: 100vh; display: flex; flex-direction: column; background: var(--bg-card); position: relative; overflow: hidden; }
-    @media (min-width: 1024px) {
-      .app { height: 95vh; margin-top: 2.5vh; border-radius: 24px; border: 1px solid var(--border-color); box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5); }
-    }
 
     /* --------------------------------------------------
-       ヘッダー (忠実再現)
+       ヘッダー
     -------------------------------------------------- */
     header { padding: 16px 24px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-    .header-left { display: flex; flex-direction: column; gap: 2px; }
-    .logo { font-weight: 900; font-size: 20px; color: var(--text-main); letter-spacing: 0.5px; }
-    .subtitle { font-size: 11px; color: var(--text-sub); }
+    .header-left .logo { font-weight: 900; font-size: 20px; color: var(--text-main); }
     
     .header-right { display: flex; align-items: center; gap: 16px; }
-    .online-status { font-size: 12px; color: var(--text-sub); font-weight: 700; }
-    
-    /* ダークモードトグル (モック) */
-    .theme-toggle { display: flex; align-items: center; gap: 4px; color: var(--text-sub); font-size: 11px; }
-    .toggle-switch { width: 40px; height: 20px; background: var(--bg-active); border-radius: 20px; position: relative; cursor: pointer; }
-    .toggle-knob { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; }
-
-    /* ヘッダーボタン */
-    .btn-group { display: flex; align-items: center; gap: 10px; }
-    .btn-login { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 18px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
-    .btn-register { background: white; color: black; border: none; padding: 8px 18px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; }
+    /* 【要件】右上にオンライン人数を表示 */
+    .online-count-badge { font-size: 12px; color: var(--green); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 6px 14px; border-radius: 20px; }
 
     /* --------------------------------------------------
-       メインコンテンツ (レイアウト)
+       メインコンテンツ (2列レイアウト)
     -------------------------------------------------- */
-    .content { flex: 1; display: grid; grid-template-columns: 1fr 280px; overflow: hidden; }
-    .main-grid { flex: 1; display: flex; flex-direction: column; padding: 24px; overflow-y: auto; gap: 24px; }
+    .content { flex: 1; display: grid; grid-template-columns: 1fr 300px; overflow: hidden; }
     
-    /* メインエリアのセクションタイトル */
-    .section-title { font-size: 16px; font-weight: 700; margin: 0; }
+    /* 左側：操作エリア */
+    .main-area { padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
+    .btn-main { padding: 16px 32px; background: var(--accent-grad); border: none; border-radius: 14px; color: white; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
 
-    /* --------------------------------------------------
-       サイドバー (現在オンライン中)
-    -------------------------------------------------- */
-    .sidebar { background: var(--bg-card); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; padding: 16px 20px; }
-    .sidebar-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; }
-    .online-user-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .user-list-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; cursor: pointer; }
-    .user-list-item:hover { background: var(--bg-active); }
-    .avatar-sm { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-active); }
-    .list-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
-
-    /* --------------------------------------------------
-       プロフィールグリッド (賑わい演出用)
-    -------------------------------------------------- */
-    .profile-grid-wrapper { display: flex; gap: 16px; }
+    /* 右側サイドバー：マッチ待機リスト */
+    .sidebar { background: var(--bg-card); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; padding: 20px; }
+    .sidebar-title { font-size: 14px; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--text-sub); }
     
-    /* 詳細プロフィール (Kenji S.) */
-    .main-profile-card { flex: 1; max-width: 300px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
-    .main-avatar { width: 120px; height: 120px; border-radius: 16px; object-fit: cover; border: 4px solid var(--bg-active); }
-    .tags-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; font-size: 11px; color: var(--text-sub); }
+    .waiting-list-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
     
-    /* 他のユーザーグリッド */
-    .other-users-grid { flex: 2; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-    .other-user-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
-    .mid-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
-    .card-name { font-size: 13px; font-weight: 700; margin: 0; }
-    .card-info { font-size: 11px; color: var(--text-sub); }
+    /* 性別ごとのセクション */
+    .gender-section { display: flex; flex-direction: column; gap: 8px; }
+    .gender-label { font-size: 12px; font-weight: 700; color: var(--text-sub); padding-bottom: 4px; border-bottom: 1px solid var(--border-color); }
+    .female-label { color: #f472b6; }
+    .male-label { color: #38bdf8; }
 
-    /* 各種ボタン */
-    .btn-action { background: var(--accent-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%; }
-    .btn-outline-action { background: transparent; color: var(--accent-blue); border: 1px solid var(--accent-blue); padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; width: 100%; }
+    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: rgba(255, 255, 255, 0.02); border-radius: 10px; }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
 
-    /* --------------------------------------------------
-       人気グループチャット
-    -------------------------------------------------- */
-    .group-chats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-    .group-chat-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); padding: 16px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
-    .group-chat-card:hover { background: var(--bg-active); }
-    .group-avatars { display: flex; gap: 6px; }
-    .avatar-xs { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-    .group-info { display: flex; flex-direction: column; gap: 2px; }
-    .group-name { font-size: 13px; font-weight: 700; }
-    .group-members { font-size: 11px; color: var(--text-sub); }
+    /* 誰もいないときの表示 */
+    .empty-state { font-size: 12px; color: var(--text-sub); text-align: center; padding: 20px; }
   </style>
 </head>
-<body data-theme="dark">
+<body>
   <div class="app">
-    <!-- 1. ヘッダー (登録ボタン追加・忠実再現) -->
+    <!-- 1. ヘッダー (オンライン人数表示) -->
     <header>
       <div class="header-left">
         <div class="logo">HIMA-LAB</div>
-        <div class="subtitle">Find, Group, or 1-on-1 Chat</div>
       </div>
       <div class="header-right">
-        <div class="online-status">🟢 3,456 online now</div>
-        <div class="theme-toggle">
-          <span>Dark mode</span>
-          <div class="toggle-switch">
-            <div class="toggle-knob"></div>
-          </div>
-        </div>
-        <div class="btn-group">
-          <button class="btn-login" onclick="location.href='#login'">ログイン</button>
-          <!-- 指示通り「登録」ボタンを右上に作成 -->
-          <button class="btn-register" onclick="location.href='#register'">登録</button>
-        </div>
+        <!-- 【要件】現在オンラインの人数を出して -->
+        <div class="online-count-badge" id="onlineCountBadge">🟢 0 online</div>
       </div>
     </header>
 
     <div class="content">
-      <!-- 2. メインエリア (ダッシュボード) -->
-      <div class="main-grid">
-        <h3 class="section-title">相手を探す</h3>
+      <!-- 2. 左側：メイン操作エリア -->
+      <main class="main-area">
+        <h2>誰かと話してみる？</h2>
+        <p style="font-size: 14px; color: var(--text-sub); margin-top: -10px;">「探す」ボタンを押して、マッチングを待ちましょう。</p>
+        <!-- このボタンで待機状態をオンオフします -->
+        <button class="btn-main" id="matchToggleBtn" onclick="toggleMatching()">🤝 1対1を探す</button>
+      </main>
 
-        <!-- プロフィールとグリッド -->
-        <div class="profile-grid-wrapper">
-          <!-- 詳細プロフィール (Kenji S.) -->
-          <div class="main-profile-card">
-            <img class="main-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Kenji" alt="avatar">
-            <h2 style="font-size:18px; margin:0;">Kenji S. (25)</h2>
-            <div class="tags-row">
-              <span>週末カフェ巡り</span>
-              <span>アニメ</span>
-              <span>最新テック</span>
-            </div>
-            <p style="font-size:12px; color:var(--text-sub); margin:0;">こんにちは！週末にまったりチャットできる相手を探しています。よろしくお願いします！</p>
-            <button class="btn-action">チャットを始める</button>
-          </div>
-
-          <!-- 他のオンラインユーザー (赈わい演出) -->
-          <div class="other-users-grid">
-            <div class="other-user-card">
-              <img class="mid-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Haruka" alt="avatar">
-              <p class="card-name">Haruka M. (23)</p>
-              <button class="btn-outline-action">チャットを開始</button>
-            </div>
-            <div class="other-user-card">
-              <img class="mid-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Yuuki" alt="avatar">
-              <p class="card-name">Yuuki T. (26)</p>
-              <button class="btn-outline-action">チャットを開始</button>
-            </div>
-            <div class="other-user-card">
-              <img class="mid-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Hania" alt="avatar">
-              <p class="card-name">Hania M. (28)</p>
-              <button class="btn-outline-action">チャットを開始</button>
-            </div>
-            <div class="other-user-card">
-              <img class="mid-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Naria" alt="avatar">
-              <p class="card-name">Naria M. (25)</p>
-              <button class="btn-outline-action">チャットを開始</button>
-            </div>
-          </div>
-        </div>
-
-        <h3 class="section-title">人気のグループチャット</h3>
-        
-        <!-- グループチャット -->
-        <div class="group-chats-row">
-          <div class="group-chat-card">
-            <div class="group-avatars">
-              <img class="avatar-xs" src="https://api.dicebear.com/7.x/notionists/svg?seed=1" alt="avatar">
-              <img class="avatar-xs" src="https://api.dicebear.com/7.x/notionists/svg?seed=2" alt="avatar">
-              <img class="avatar-xs" src="https://api.dicebear.com/7.x/notionists/svg?seed=3" alt="avatar">
-            </div>
-            <div class="group-info">
-              <div class="group-name">🎬 映画ファン (120名)</div>
-              <div class="group-members">最新映画のネタバレ注意！</div>
-            </div>
-          </div>
-          <div class="group-chat-card">
-            <div class="group-avatars">
-              <img class="avatar-xs" src="https://api.dicebear.com/7.x/notionists/svg?seed=4" alt="avatar">
-              <img class="avatar-xs" src="https://api.dicebear.com/7.x/notionists/svg?seed=5" alt="avatar">
-            </div>
-            <div class="group-info">
-              <div class="group-name">🎵 音楽好き (85名)</div>
-              <div class="group-members">おすすめのプレイリスト</div>
-            </div>
-          </div>
-          <div class="group-chat-card">
-            <div class="group-avatars">
-              <img class="avatar-xs" src="https://api.dicebear.com/7.x/notionists/svg?seed=6" alt="avatar">
-            </div>
-            <div class="group-info">
-              <div class="group-name">💻 テック雑談 (210名)</div>
-              <div class="group-members">AIとWebの未来について</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. サイドバー (現在オンライン中) -->
+      <!-- 3. 右側：サイドバー (待機リスト・性別分け) -->
       <aside class="sidebar">
-        <div class="sidebar-title">現在オンライン中</div>
-        <div class="online-user-list">
-          <div class="user-list-item">
-            <img class="avatar-sm" src="https://api.dicebear.com/7.x/notionists/svg?seed=Kenji" alt="avatar">
-            <span class="list-name">Kenji S.</span>
-          </div>
-          <div class="user-list-item">
-            <img class="avatar-sm" src="https://api.dicebear.com/7.x/notionists/svg?seed=Haruka" alt="avatar">
-            <span class="list-name">Haruka M.</span>
-          </div>
-          <div class="user-list-item">
-            <img class="avatar-sm" src="https://api.dicebear.com/7.x/notionists/svg?seed=Yuuki" alt="avatar">
-            <span class="list-name">Yuuki T.</span>
-          </div>
-          <div class="user-list-item">
-            <img class="avatar-sm" src="https://api.dicebear.com/7.x/notionists/svg?seed=Hania" alt="avatar">
-            <span class="list-name">Hania M.</span>
-          </div>
-          <div class="user-list-item">
-            <img class="avatar-sm" src="https://api.dicebear.com/7.x/notionists/svg?seed=Naria" alt="avatar">
-            <span class="list-name">Naria M.</span>
-          </div>
+        <div class="sidebar-title">マッチング待機中</div>
+        
+        <div class="waiting-list-container" id="waitingListContainer">
+          <!-- ここにリアルタイムでユーザーが描写されます -->
         </div>
       </aside>
     </div>
   </div>
 
   <script>
-    // 将来Supabaseで登録/ログイン機能を実装するためのスクリプトエリア
-    console.log("HIMA-LAB Dashboard initialized.");
+    // Supabaseの設定
+    const SUPABASE_URL = "https://yssmhumtrdihpketcuux.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // このタブの固有ID、名前、性別（仮）
+    const myId = 'usr_' + Math.random().toString(36).substring(2, 9);
+    const myGender = localStorage.getItem('hima_gender') || '未設定'; // ここで性別を取得（実際はプロフィール設定画面で作る）
+    const myName = `ユーザー_${myId.substr(-4)}`;
+    
+    let isWaiting = false; // 現在マッチング待機中かどうか
+    let lobbyChannel = null; // Supabaseのチャンネル
+
+    // システム初期化
+    async function initSystem() {
+      // 1. SupabaseのRealtimeチャンネルに接続
+      lobbyChannel = supabaseClient.channel('match_lobby', {
+        config: { presence: { key: myId } }
+      });
+
+      // 2. 誰かが接続・切断、または状態を変えた瞬間のイベント
+      lobbyChannel.on('presence', { event: 'sync' }, () => {
+        const state = lobbyChannel.presenceState();
+        const allUsers = Object.values(state).flat();
+
+        // 【要件】オンライン人数を表示
+        document.getElementById('onlineCountBadge').innerText = `🟢 ${allUsers.length} online`;
+
+        // 【要件】マッチ待ちの人を右側に表示（自分以外、かつ待機中の人）
+        const waitingUsers = allUsers.filter(u => u.isWaiting && u.id !== myId);
+        renderWaitingList(waitingUsers);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // 初期状態（待機していない）をトラック開始
+          await lobbyChannel.track({ id: myId, name: myName, gender: myGender, isWaiting: false });
+        }
+      });
+    }
+
+    // 「1対1を探す」ボタンの処理
+    async function toggleMatching() {
+      isWaiting = !isWaiting;
+      const btn = document.getElementById('matchToggleBtn');
+
+      if (isWaiting) {
+        btn.innerText = "✖ 待機をキャンセル";
+        btn.style.background = "#ef4444"; // 赤色に
+      } else {
+        btn.innerText = "🤝 1対1を探す";
+        btn.style.background = ""; // 元の色に
+      }
+
+      // Supabaseに自分の待機状態を更新して通知
+      await lobbyChannel.track({ id: myId, name: myName, gender: myGender, isWaiting: isWaiting });
+    }
+
+    // 【要件】男性、女性、未設定に右側で分けて描写
+    function renderWaitingList(users) {
+      const container = document.getElementById('waitingListContainer');
+      container.innerHTML = ''; // 一旦クリア
+
+      if (users.length === 0) {
+        // 誰もいないときは何も表示しない（メッセージのみ）
+        container.innerHTML = `<div class="empty-state">待機中のユーザーはいません</div>`;
+        return;
+      }
+
+      // 性別ごとにグループ化
+      const grouped = {
+        '女性': users.filter(u => u.gender === '女性'),
+        '男性': users.filter(u => u.gender === '男性'),
+        '未設定': users.filter(u => u.gender !== '男性' && u.gender !== '女性')
+      };
+
+      // 各セクションを描写
+      ['女性', '男性', '未設定'].forEach(gender => {
+        const list = grouped[gender];
+        if (list.length > 0) {
+          // セクションのHTMLを作成
+          let sectionHtml = `
+            <div class="gender-section">
+              <div class="gender-label ${gender === '女性' ? 'female-label' : (gender === '男性' ? 'male-label' : '')}">${gender}</div>
+          `;
+          
+          // ユーザーを追加
+          list.forEach(u => {
+            sectionHtml += `
+              <div class="user-item">
+                <span class="user-name">${u.name}</span>
+                <div class="status-dot"></div>
+              </div>
+            `;
+          });
+
+          sectionHtml += `</div>`; // セクションを閉じる
+          container.innerHTML += sectionHtml;
+        }
+      });
+    }
+
+    // サイト読み込み時に実行
+    window.onload = initSystem;
   </script>
 </body>
 </html>
