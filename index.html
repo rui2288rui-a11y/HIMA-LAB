@@ -81,4 +81,573 @@
     .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-action-primary:hover { background: var(--accent-hover); }
     .btn-action-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px;
+    .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn-action-secondary:hover { background: rgba(255, 255, 255, 0.05); }
+    .btn-action-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger-color); color: #fca5a5; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-card { background: #0f1520; border: 1px solid var(--panel-border); border-radius: 16px; padding: 28px; width: 460px; max-width: 90%; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .modal-title { font-size: 18px; font-weight: 700; text-align: center; }
+
+    .avatar-selector { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    .avatar-option { font-size: 26px; padding: 8px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: rgba(255,255,255,0.05); transition: all 0.2s; }
+    .avatar-option.selected { border-color: var(--accent-color); background: rgba(37, 99, 235, 0.3); }
+
+    .custom-file-upload { display: inline-block; padding: 6px 12px; border: 1px solid var(--panel-border); border-radius: 6px; font-size: 12px; cursor: pointer; background: rgba(255,255,255,0.05); }
+
+    .terms-box { font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 12px; border-radius: 8px; height: 130px; overflow-y: auto; line-height: 1.6; }
+
+    .call-active-window { display: none; position: absolute; top: 70px; right: 20px; width: 300px; background: rgba(15, 21, 32, 0.95); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px; z-index: 10; flex-direction: column; gap: 12px; backdrop-filter: blur(12px); }
+    .call-video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 110px; }
+    .call-video-box { background: #000; border-radius: 8px; width: 100%; height: 100%; object-fit: cover; }
+  </style>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+
+  <div id="modal-profile" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-title">プロフィール設定</div>
+      
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">アイコンを選択</label>
+        <div class="avatar-selector">
+          <span class="avatar-option selected" onclick="selectPresetAvatar('🐱', this)">🐱</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('🐶', this)">🐶</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('🦊', this)">🦊</span>
+          <span class="avatar-option" onclick="selectPresetAvatar('🐼', this)">🐼</span>
+          <label class="custom-file-upload">
+            📁 ファイルから画像を選択
+            <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleCustomAvatar(event)">
+          </label>
+        </div>
+        <div id="preview-avatar-container" style="display:none; text-align:center; margin-top:4px;">
+          <span style="font-size:11px; color:var(--text-muted);">選択中の画像プレビュー:</span>
+          <div class="avatar-render" style="margin: 4px auto;"><img id="custom-avatar-img" src="" alt=""></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">ユーザーネーム</label>
+        <input type="text" id="init-username" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;" placeholder="例: ゲスト123" maxlength="15">
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">性別</label>
+        <select id="init-gender" style="background:rgba(255,255,255,0.05); border:1px solid var(--panel-border); border-radius:8px; padding:10px; color:#fff;">
+          <option value="未回答">未回答 / 非公開</option>
+          <option value="男性">男性</option>
+          <option value="女性">女性</option>
+        </select>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">利用規約（必ずお読みください）</label>
+        <div class="terms-box">
+          <strong>【HIMA-LAB 利用規約】</strong><br><br>
+          第1条（目的）本サービスは、ユーザー間の健全なコミュニケーションを提供することを目的とします。<br>
+          第2条（禁止事項）以下の行為を禁止します。<br>
+          ・公序良俗に反する発言、画像、映像の送信<br>
+          ・他者への侮辱、誹謗中傷、ハラスメント行為<br>
+          ・許可のない商業活動や勧誘行為<br>
+          第3条（違反の措置）運営は、禁止行為が確認された場合、事前通知なく利用停止措置を行います。
+        </div>
+      </div>
+
+      <label style="font-size:12px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="terms-agree" onchange="toggleSubmitBtn()"> 利用規約の内容を確認し、同意します
+      </label>
+
+      <button id="btn-save-profile" class="btn-action-primary" onclick="saveInitialProfile()" disabled>同意して開始</button>
+    </div>
+  </div>
+
+  <div id="modal-call-type" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="text-align:center;">
+      <div class="modal-title">通話形式の選択</div>
+      <p style="font-size:13px; color:var(--text-secondary);">どちらの形式で呼び出しますか？</p>
+      
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+        <button class="btn-action-primary" onclick="initiateCall(false)">🎙️ 音声通話で呼び出す</button>
+        <button class="btn-action-secondary" onclick="initiateCall(true)">📹 ビデオ通話で呼び出す</button>
+        <button class="btn-action-secondary" style="border:none; font-size:12px; color:var(--text-muted);" onclick="closeCallTypeModal()">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-calling" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="text-align:center;">
+      <div class="progress-circle" style="margin: 0 auto;">呼び出し</div>
+      <div class="modal-title" style="margin-top:16px;" id="calling-target-name">相手を呼び出しています...</div>
+      <p style="font-size:12px; color:var(--text-muted);">相手の応答を待っています</p>
+      <button class="btn-action-danger" style="margin-top:12px;" onclick="cancelCall()">呼び出しをキャンセル</button>
+    </div>
+  </div>
+
+  <div id="modal-incoming" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="text-align:center;">
+      <div class="avatar-placeholder-lg" style="margin: 0 auto;" id="incoming-avatar-box"></div>
+      <div class="modal-title" id="incoming-caller-name" style="margin-top:12px;">○○ から着信</div>
+      <p style="font-size:13px; color:var(--text-secondary);" id="incoming-type-text">通話の着信があります</p>
+      
+      <div style="display:flex; gap:12px; margin-top:16px; justify-content:center;">
+        <button class="btn-action-danger" style="flex:1;" onclick="rejectIncomingCall()">拒否</button>
+        <button class="btn-action-primary" style="flex:1;" onclick="acceptIncomingCall()">応答する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <header>
+      <div>
+        <span class="brand-title">HIMA-LAB</span>
+        <span class="brand-sub">Realtime Community</span>
+      </div>
+      <div class="header-actions">
+        <div class="online-counter"><div class="status-dot"></div><span id="online-count">0 online</span></div>
+        <div id="user-profile-badge" style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;"></div>
+      </div>
+    </header>
+
+    <div id="view-dashboard" class="view-section active">
+      <section class="viewport-panel">
+        <h2>1対1のマッチングを開始</h2>
+        <p style="font-size:13px; color:var(--text-secondary);">オンラインの別ユーザーをリアルタイムで検索します</p>
+        <button class="btn-action-primary" onclick="startMatchingQueue()">待機キューに入る</button>
+      </section>
+      <aside class="sidebar-panel">
+        <div class="sidebar-header">接続中のユーザー</div>
+        <div class="sidebar-content" id="sidebar-users"></div>
+      </aside>
+      <section class="threads-panel">
+        <div style="font-size:13px; font-weight:600; color:var(--text-secondary);">アクティブスレッド</div>
+      </section>
+    </div>
+
+    <div id="view-matching" class="view-section">
+      <h2>オンラインユーザーを探しています...</h2>
+      <div class="progress-circle">検索中</div>
+      <button class="btn-action-secondary" onclick="cancelMatchingQueue()">キャンセル</button>
+    </div>
+
+    <div id="view-matched" class="view-section">
+      <h2>マッチング完了！</h2>
+      <div class="match-cards">
+        <div class="user-card">
+          <div class="avatar-placeholder-lg" id="my-avatar-display"></div>
+          <div id="my-display-name">あなた</div>
+        </div>
+        <div style="font-size:20px; font-weight:700; color:var(--accent-color);">VS</div>
+        <div class="user-card">
+          <div class="avatar-placeholder-lg" id="partner-avatar-display"></div>
+          <div id="matched-user-name">相手</div>
+        </div>
+      </div>
+      <button class="btn-action-primary" onclick="openDirectChat()">1対1チャットを開始</button>
+    </div>
+
+    <div id="view-chat" class="view-section">
+      <div class="chat-main">
+        <div class="chat-header">
+          <span id="chat-title">チャットルーム</span>
+          <button class="btn-action-secondary" style="padding:6px 14px; font-size:12px;" onclick="openCallTypeModal()">📞 通話を開始</button>
+        </div>
+
+        <div class="call-active-window" id="call-active-window">
+          <div style="font-size:12px; font-weight:600; color:var(--text-secondary);" id="call-status-label">通話中</div>
+          <div class="call-video-grid">
+            <video id="local-video" class="call-video-box" autoplay muted playsinline></video>
+            <video id="remote-video" class="call-video-box" autoplay playsinline></video>
+          </div>
+          <button class="btn-action-danger" style="width:100%; padding:6px;" onclick="endCall()">通話を終了</button>
+        </div>
+        
+        <div class="chat-messages">
+          <div class="chat-messages-inner" id="chat-messages">
+            <div class="message-item system"><div class="message-bubble">チャットを開始しました。</div></div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <button class="btn-action-primary" onclick="sendMessage()">送信</button>
+          <button class="btn-action-secondary" onclick="leaveChat()">退室</button>
+        </div>
+      </div>
+      
+      <aside class="sidebar-panel">
+        <div class="sidebar-header">会話中の相手</div>
+        <div class="sidebar-content" id="chat-partner-info"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://yssmhumtrdihpketcuux.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const myUserId = 'user_' + Math.floor(Math.random() * 100000);
+    let myUserName = 'Guest';
+    let myAvatar = '🐱'; // 文字列またはDataURL
+    let isCustomAvatar = false;
+    let myGender = '未回答';
+
+    let onlineUsers = [];
+    let currentPartner = null;
+    let pendingCallData = null;
+    let peerConnection = null;
+    let localStream = null;
+    const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19020' }] };
+
+    function selectPresetAvatar(avatar, el) {
+      myAvatar = avatar;
+      isCustomAvatar = false;
+      document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('preview-avatar-container').style.display = 'none';
+    }
+
+    function handleCustomAvatar(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        myAvatar = e.target.result;
+        isCustomAvatar = true;
+        document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+        document.getElementById('custom-avatar-img').src = myAvatar;
+        document.getElementById('preview-avatar-container').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderAvatarHTML(avatarVal) {
+      if (avatarVal && avatarVal.startsWith('data:image')) {
+        return `<img src="${avatarVal}" alt="avatar">`;
+      }
+      return avatarVal || '🐱';
+    }
+
+    function toggleSubmitBtn() {
+      const isChecked = document.getElementById('terms-agree').checked;
+      document.getElementById('btn-save-profile').disabled = !isChecked;
+    }
+
+    function saveInitialProfile() {
+      const name = document.getElementById('init-username').value.trim();
+      if (!name) { alert('ユーザーネームを入力してください'); return; }
+
+      myUserName = name;
+      myGender = document.getElementById('init-gender').value;
+
+      document.getElementById('user-profile-badge').innerHTML = `
+        <div class="avatar-render">${renderAvatarHTML(myAvatar)}</div>
+        <span>${myUserName}</span>
+      `;
+      document.getElementById('my-display-name').innerText = myUserName;
+      document.getElementById('my-avatar-display').innerHTML = renderAvatarHTML(myAvatar);
+      document.getElementById('modal-profile').style.display = 'none';
+
+      initRealtime();
+    }
+
+    let room;
+    function initRealtime() {
+      room = supabaseClient.channel('global-room', { config: { broadcast: { self: true } } });
+
+      room.on('presence', { event: 'sync' }, () => {
+        const state = room.presenceState();
+        onlineUsers = [];
+        for (let id in state) {
+          state[id].forEach(u => onlineUsers.push(u));
+        }
+        document.getElementById('online-count').innerText = `${onlineUsers.length} online`;
+
+        const sidebar = document.getElementById('sidebar-users');
+        if (sidebar) {
+          sidebar.innerHTML = onlineUsers.map(u => `
+            <div class="user-item">
+              <div class="avatar-render">${renderAvatarHTML(u.avatar)}</div>
+              <div style="font-size:13px;">${u.username} ${u.user_id === myUserId ? '(自分)' : ''}</div>
+            </div>
+          `).join('');
+        }
+      });
+
+      room.on('broadcast', { event: 'chat_message' }, (payload) => {
+        const data = payload.payload;
+        if (currentPartner && (data.senderId === myUserId || data.senderId === currentPartner.id)) {
+          appendMessage(data);
+        }
+      });
+
+      room.on('broadcast', { event: 'match_invite' }, (payload) => {
+        const data = payload.payload;
+        if (data.targetId === myUserId) {
+          triggerMatchSuccess({ id: data.fromId, name: data.fromName, avatar: data.fromAvatar, gender: data.fromGender });
+        }
+      });
+
+      room.on('broadcast', { event: 'call_request' }, (payload) => {
+        const data = payload.payload;
+        if (data.targetId === myUserId) {
+          pendingCallData = data;
+          document.getElementById('incoming-avatar-box').innerHTML = renderAvatarHTML(data.callerAvatar);
+          document.getElementById('incoming-caller-name').innerText = `${data.callerName} から着信`;
+          document.getElementById('incoming-type-text').innerText = data.isVideo ? '📹 ビデオ通話の着信があります' : '🎙️ 音声通話の着信があります';
+          document.getElementById('modal-incoming').style.display = 'flex';
+        }
+      });
+
+      room.on('broadcast', { event: 'call_response' }, async (payload) => {
+        const data = payload.payload;
+        if (data.targetId === myUserId) {
+          document.getElementById('modal-calling').style.display = 'none';
+          if (data.accepted) {
+            startRtcConnection(data.isVideo, true);
+          } else {
+            alert('通話リクエストが拒否されました');
+          }
+        }
+      });
+
+      room.on('broadcast', { event: 'rtc_signal' }, async (payload) => {
+        const data = payload.payload;
+        if (data.targetId !== myUserId) return;
+
+        if (data.sdp) {
+          if (!peerConnection) createPeerConnection();
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+          if (data.sdp.type === 'offer') {
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            room.send({ type: 'broadcast', event: 'rtc_signal', payload: { targetId: data.fromId, sdp: peerConnection.localDescription } });
+          }
+        } else if (data.candidate && peerConnection) {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      });
+
+      room.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          room.track({ user_id: myUserId, username: myUserName, avatar: myAvatar, gender: myGender });
+        }
+      });
+    }
+
+    let matchingInterval = null;
+    function startMatchingQueue() {
+      switchView('view-matching');
+
+      matchingInterval = setInterval(() => {
+        const candidates = onlineUsers.filter(u => u.user_id !== myUserId);
+        if (candidates.length > 0) {
+          clearInterval(matchingInterval);
+          const matched = candidates[Math.floor(Math.random() * candidates.length)];
+          
+          room.send({
+            type: 'broadcast',
+            event: 'match_invite',
+            payload: {
+              targetId: matched.user_id,
+              fromId: myUserId,
+              fromName: myUserName,
+              fromAvatar: myAvatar,
+              fromGender: myGender
+            }
+          });
+
+          triggerMatchSuccess({ id: matched.user_id, name: matched.username, avatar: matched.avatar, gender: matched.gender });
+        }
+      }, 1000);
+    }
+
+    function cancelMatchingQueue() {
+      if (matchingInterval) clearInterval(matchingInterval);
+      switchView('view-dashboard');
+    }
+
+    function triggerMatchSuccess(partner) {
+      currentPartner = partner;
+      document.getElementById('matched-user-name').innerText = partner.name;
+      document.getElementById('partner-avatar-display').innerHTML = renderAvatarHTML(partner.avatar);
+      switchView('view-matched');
+    }
+
+    function openCallTypeModal() {
+      if (!currentPartner) { alert('相手がいません'); return; }
+      document.getElementById('modal-call-type').style.display = 'flex';
+    }
+    function closeCallTypeModal() { document.getElementById('modal-call-type').style.display = 'none'; }
+
+    function initiateCall(isVideo) {
+      closeCallTypeModal();
+      document.getElementById('calling-target-name').innerText = `${currentPartner.name} を呼び出しています...`;
+      document.getElementById('modal-calling').style.display = 'flex';
+
+      room.send({
+        type: 'broadcast',
+        event: 'call_request',
+        payload: {
+          targetId: currentPartner.id,
+          callerId: myUserId,
+          callerName: myUserName,
+          callerAvatar: myAvatar,
+          isVideo: isVideo
+        }
+      });
+    }
+
+    function cancelCall() {
+      document.getElementById('modal-calling').style.display = 'none';
+    }
+
+    function acceptIncomingCall() {
+      document.getElementById('modal-incoming').style.display = 'none';
+      if (!pendingCallData) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'call_response',
+        payload: { targetId: pendingCallData.callerId, accepted: true, isVideo: pendingCallData.isVideo }
+      });
+
+      startRtcConnection(pendingCallData.isVideo, false);
+    }
+
+    function rejectIncomingCall() {
+      document.getElementById('modal-incoming').style.display = 'none';
+      if (!pendingCallData) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'call_response',
+        payload: { targetId: pendingCallData.callerId, accepted: false }
+      });
+    }
+
+    async function startRtcConnection(isVideo, isOffer) {
+      document.getElementById('call-active-window').style.display = 'flex';
+      document.getElementById('call-status-label').innerText = isVideo ? '📹 ビデオ通話中' : '🎙️ 音声通話中';
+      
+      createPeerConnection();
+
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+        document.getElementById('local-video').srcObject = localStream;
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        if (isOffer) {
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          room.send({
+            type: 'broadcast',
+            event: 'rtc_signal',
+            payload: { targetId: currentPartner.id, fromId: myUserId, sdp: peerConnection.localDescription }
+          });
+        }
+      } catch (e) {
+        alert('マイク/カメラへのアクセスが拒否されました');
+        endCall();
+      }
+    }
+
+    function createPeerConnection() {
+      peerConnection = new RTCPeerConnection(rtcConfig);
+      peerConnection.onicecandidate = (e) => {
+        if (e.candidate && currentPartner) {
+          room.send({
+            type: 'broadcast',
+            event: 'rtc_signal',
+            payload: { targetId: currentPartner.id, fromId: myUserId, candidate: e.candidate }
+          });
+        }
+      };
+      peerConnection.ontrack = (e) => {
+        document.getElementById('remote-video').srcObject = e.streams[0];
+      };
+    }
+
+    function endCall() {
+      if (peerConnection) { peerConnection.close(); peerConnection = null; }
+      if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+      document.getElementById('call-active-window').style.display = 'none';
+    }
+
+    function openDirectChat() {
+      document.getElementById('chat-title').innerText = `${currentPartner.name} とのチャット`;
+      document.getElementById('chat-partner-info').innerHTML = `
+        <div style="text-align:center; padding:20px 0;">
+          <div class="avatar-placeholder-lg" style="margin: 0 auto 12px;">${renderAvatarHTML(currentPartner.avatar)}</div>
+          <div style="font-weight:700;">${currentPartner.name}</div>
+          <div style="font-size:12px; color:var(--text-muted);">性別: ${currentPartner.gender}</div>
+        </div>
+      `;
+      switchView('view-chat');
+    }
+
+    function leaveChat() { endCall(); currentPartner = null; switchView('view-dashboard'); }
+
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      room.send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: { sender: myUserName, senderId: myUserId, text: text }
+      });
+      input.value = '';
+    }
+
+    function appendMessage(data) {
+      const container = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      const isSelf = data.senderId === myUserId;
+      
+      msgDiv.className = `message-item ${isSelf ? 'self' : ''}`;
+      msgDiv.innerHTML = `<div class="message-bubble">${data.text}</div>`;
+      container.appendChild(msgDiv);
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+    }
+
+    /* Three.js 背景 */
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(0, -15, 35);
+    camera.lookAt(0, 5, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    const planeGeo = new THREE.PlaneGeometry(120, 80, 50, 40);
+    const planeMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, wireframe: true, transparent: true, opacity: 0.15 });
+    const plane = new THREE.Mesh(planeGeo, planeMat);
+    plane.rotation.x = -Math.PI / 3;
+    scene.add(plane);
+
+    let count = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      count += 0.02;
+      const posArr = planeGeo.attributes.position.array;
+      for (let i = 0; i < posArr.length; i += 3) {
+        posArr[i + 2] = Math.sin(posArr[i] * 0.2 + count) * 1.5;
+      }
+      planeGeo.attributes.position.needsUpdate = true;
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
