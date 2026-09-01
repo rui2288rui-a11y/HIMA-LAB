@@ -708,7 +708,13 @@ const { error: profileError } = await supabaseClient
 
 if (profileError) {
   console.error('プロフィール保存エラー:', profileError);
-  alert('プロフィールの保存に失敗しました。');
+  alert(
+    'プロフィールの保存に失敗しました。\n\n' +
+    'code: ' + (profileError.code || '') + '\n' +
+    'message: ' + (profileError.message || '') + '\n' +
+    'details: ' + (profileError.details || '') + '\n' +
+    'hint: ' + (profileError.hint || '')
+  );
   return;
 }
       localStorage.setItem('resonance_profile', JSON.stringify({
