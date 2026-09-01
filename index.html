@@ -1504,6 +1504,37 @@ async function checkAuthState() {
     authScreen.style.display = 'none';
     console.log('ログイン済み:', session.user.id);
     myAuthUserId = session.user.id;
+    const { data: profile, error: profileError } = await supabaseClient
+  .from('profiles')
+  .select('username, gender, avatar_url, bio')
+  .eq('id', session.user.id)
+  .maybeSingle();
+
+if (profileError) {
+  console.error('プロフィール読み込みエラー:', profileError);
+  return;
+}
+
+if (profile) {
+  myUserName = profile.username || '';
+  myGender =
+    profile.gender === 'male'
+      ? '男性'
+      : profile.gender === 'female'
+        ? '女性'
+        : 'その他';
+  myAvatar = profile.avatar_url || '✨';
+  myBio = profile.bio || '';
+
+  localStorage.setItem('resonance_profile', JSON.stringify({
+    name: myUserName,
+    avatar: myAvatar,
+    gender: myGender,
+    bio: myBio
+  }));
+
+  console.log('プロフィール読み込み成功:', profile);
+}
   } else {
     // ログインしていない
     authScreen.style.display = 'flex';
