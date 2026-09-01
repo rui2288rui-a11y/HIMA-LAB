@@ -4,73 +4,72 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HIMA-LAB - Realtime Community</title>
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Three.js (3D背景演出用) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg-base: #0a0d14;
-      --panel-bg: rgba(18, 24, 38, 0.85);
+      --bg-base: #06080d;
+      --panel-bg: rgba(15, 21, 32, 0.75);
       --panel-border: rgba(255, 255, 255, 0.08);
       --text-primary: #f1f5f9;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
       --accent-color: #2563eb;
       --accent-hover: #1d4ed8;
-      --accent-glow: rgba(37, 99, 235, 0.35);
+      --accent-glow: rgba(37, 99, 235, 0.4);
       --online-indicator: #10b981;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans JP', sans-serif; -webkit-font-smoothing: antialiased; }
     body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; overflow: hidden; position: relative; }
 
-    /* 背景粒子キャンバス */
-    #bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    /* Three.js 3D背景 */
+    #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
-    .app-container { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(12px); }
+    .app-container { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(8px); }
 
     /* ヘッダー */
-    header { height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(10, 13, 20, 0.6); }
+    header { height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--panel-border); background: rgba(6, 8, 13, 0.6); }
     .brand-title { font-size: 18px; font-weight: 700; letter-spacing: 0.05em; color: #ffffff; }
     .brand-sub { font-size: 11px; color: var(--text-muted); }
     .header-actions { display: flex; align-items: center; gap: 16px; }
     .online-counter { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); padding: 6px 14px; border-radius: 20px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--online-indicator); box-shadow: 0 0 8px var(--online-indicator); }
-    
+
     .btn-auth { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .btn-auth:hover { background: rgba(255, 255, 255, 0.05); }
     .btn-auth.primary { background: var(--text-primary); color: var(--bg-base); border: none; font-weight: 600; }
-    .btn-auth.primary:hover { background: #e2e8f0; }
 
-    /* ビュー切替制御 */
+    /* ビュー制御 */
     .view-section { display: none; width: 100%; height: calc(100vh - 64px); }
     .view-section.active { display: flex; }
 
-    /* 1. ダッシュボード */
-    #view-dashboard { display: grid; grid-template-columns: 1fr 320px; grid-template-rows: 1fr 220px; gap: 20px; padding: 20px 28px; }
+    /* ダッシュボード */
+    #view-dashboard { display: grid; grid-template-columns: 1fr 300px; grid-template-rows: 1fr 200px; gap: 20px; padding: 20px 28px; }
     .viewport-panel { grid-column: 1 / 2; grid-row: 1 / 2; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
     .sidebar-panel { grid-column: 2 / 3; grid-row: 1 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
     .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
-    .sidebar-content { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    .sidebar-content { flex: 1; padding: 16px; overflow-y: auto; }
     .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px 20px; }
 
-    /* サイドバーの性別グループ */
-    .gender-group { display: flex; flex-direction: column; gap: 8px; }
-    .group-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 4px; border-bottom: 1px solid var(--panel-border); }
-
-    /* 2. マッチング中 */
+    /* マッチング中 */
     #view-matching { flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
     .progress-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--panel-border); border-top-color: var(--accent-color); animation: spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 3. マッチ成立 */
+    /* マッチ成立 */
     #view-matched { flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
     .match-cards { display: flex; gap: 32px; align-items: center; }
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
     .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--panel-border); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; }
 
-    /* 4. チャット画面 */
+    /* チャット */
     #view-chat { display: grid; grid-template-columns: 1fr 280px; width: 100%; height: calc(100vh - 64px); }
     .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; }
@@ -80,7 +79,7 @@
     .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; }
     .chat-input { flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; }
 
-    /* 共通ボタン */
+    /* ボタン類 */
     .btn-action-primary { background: var(--accent-color); color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px var(--accent-glow); transition: all 0.2s; }
     .btn-action-primary:hover { background: var(--accent-hover); }
     .btn-action-secondary { background: transparent; border: 1px solid var(--panel-border); color: var(--text-primary); padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
@@ -89,7 +88,7 @@
 </head>
 <body>
 
-  <canvas id="bg-canvas"></canvas>
+  <div id="canvas-container"></div>
 
   <div class="app-container">
     <header>
@@ -123,9 +122,7 @@
 
       <section class="threads-panel">
         <div style="font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:12px;">アクティブスレッド</div>
-        <div style="display:flex; gap:12px;">
-          <button class="btn-action-secondary" style="padding:10px 20px; font-size:13px;" onclick="openGroupChat('#映画ファン (120名)')">#映画ファン スレッドに参加</button>
-        </div>
+        <button class="btn-action-secondary" style="padding:10px 20px; font-size:13px;" onclick="openGroupChat('#映画ファン (120名)')">#映画ファン スレッドに参加</button>
       </section>
     </div>
 
@@ -134,7 +131,7 @@
       <h2 style="font-size:24px; font-weight:600;">マッチング中...</h2>
       <p style="color:var(--text-secondary); font-size:14px;">希望条件と相性の良い人を検索しています。</p>
       <div class="progress-circle">75%</div>
-      <button class="btn-action-secondary" onclick="switchView('view-matched')" style="margin-top:20px;">（UI確認用：マッチ成功させる）</button>
+      <button class="btn-action-secondary" onclick="switchView('view-matched')" style="margin-top:20px;">（デモ：マッチ成功させる）</button>
     </div>
 
     <!-- 3. マッチ成立画面 -->
@@ -196,47 +193,80 @@
       switchView('view-chat');
     }
 
-    /* 背景玉ボケ・粒子 Canvas アニメーション */
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let width, height, particles = [];
+    /* Three.js による 3D波状ワイヤーフレーム＋玉ボケ背景アニメーション */
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(0, -15, 35);
+    camera.lookAt(0, 5, 0);
 
-    function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resize);
-    resize();
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
 
-    class Particle {
-      constructor() { this.reset(); }
-      reset() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.radius = Math.random() * 40 + 10;
-        this.vx = (Math.random() - 0.5) * 0.3;
-        this.vy = (Math.random() - 0.5) * 0.3;
-        this.alpha = Math.random() * 0.15 + 0.05;
-      }
-      update() {
-        this.x += this.vx; this.y += this.vy;
-        if (this.x < -50 || this.x > width + 50 || this.y < -50 || this.y > height + 50) this.reset();
-      }
-      draw() {
-        ctx.beginPath();
-        const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
-        g.addColorStop(0, `rgba(59, 130, 246, ${this.alpha})`);
-        g.addColorStop(1, 'rgba(10, 13, 20, 0)');
-        ctx.fillStyle = g;
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    // 1. 波打つワイヤーフレーム平面 (グリッド)
+    const planeGeo = new THREE.PlaneGeometry(120, 80, 50, 40);
+    const planeMat = new THREE.MeshBasicMaterial({
+      color: 0x3b82f6,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.15
+    });
+    const plane = new THREE.Mesh(planeGeo, planeMat);
+    plane.rotation.x = -Math.PI / 3;
+    scene.add(plane);
+
+    // 2. 光の粒子 (玉ボケ)
+    const particleCount = 60;
+    const particleGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount * 3; i += 3) {
+      positions[i] = (Math.random() - 0.5) * 80;
+      positions[i + 1] = (Math.random() - 0.5) * 60;
+      positions[i + 2] = (Math.random() - 0.5) * 40;
     }
-    for (let i = 0; i < 40; i++) particles.push(new Particle());
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
+    const particleMat = new THREE.PointsMaterial({
+      color: 0x60a5fa,
+      size: 1.2,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending
+    });
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+
+    // アニメーションループ
+    let count = 0;
     function animate() {
-      ctx.clearRect(0, 0, width, height);
-      particles.forEach(p => { p.update(); p.draw(); });
       requestAnimationFrame(animate);
+      count += 0.02;
+
+      // 頂点を動かして波を作る
+      const posArr = planeGeo.attributes.position.array;
+      for (let i = 0; i < posArr.length; i += 3) {
+        const x = posArr[i];
+        const y = posArr[i + 1];
+        posArr[i + 2] = Math.sin(x * 0.2 + count) * 1.5 + Math.cos(y * 0.2 + count) * 1.5;
+      }
+      planeGeo.attributes.position.needsUpdate = true;
+
+      // 粒子をゆっくり浮遊させる
+      particles.rotation.y = count * 0.05;
+
+      renderer.render(scene, camera);
     }
     animate();
+
+    // ウィンドウリサイズ対応
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
