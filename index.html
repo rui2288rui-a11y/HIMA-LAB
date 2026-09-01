@@ -44,7 +44,7 @@
     .btn-auth.primary { background: var(--text-primary); color: var(--bg-base); border: none; font-weight: 600; }
 
     /* 全ビュー共通スタイル（非表示制御） */
-    .view-section { display: none !important; width: 100%; height: calc(100vh - 64px); }
+    .view-section { display: none !important; width: 100%; height: calc(100vh - 64px); overflow: hidden; }
 
     /* 画面別の表示レイアウト定義 */
     #view-dashboard.active { display: grid !important; grid-template-columns: 1fr 300px; grid-template-rows: 1fr 200px; gap: 20px; padding: 20px 28px; }
@@ -55,7 +55,7 @@
     /* ダッシュボード用スタイル */
     .viewport-panel { grid-column: 1 / 2; grid-row: 1 / 2; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
     .sidebar-panel { grid-column: 2 / 3; grid-row: 1 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--panel-border); font-size: 13px; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
     .sidebar-content { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .threads-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 16px 20px; }
 
@@ -74,17 +74,17 @@
     .user-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 220px; }
     .avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
 
-    /* チャット画面スタイル */
-    .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); }
-    .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; }
-    .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    /* チャット画面スタイル (レイアウト崩れ修正) */
+    .chat-main { display: flex; flex-direction: column; border-right: 1px solid var(--panel-border); height: 100%; overflow: hidden; }
+    .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--panel-border); font-weight: 700; flex-shrink: 0; }
+    .chat-messages { flex: 1; min-height: 0; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
     .message-item { display: flex; flex-direction: column; max-width: 70%; gap: 4px; }
     .message-item.self { align-self: flex-end; align-items: flex-end; }
     .message-sender { font-size: 11px; color: var(--text-muted); }
     .message-bubble { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 12px 16px; border-radius: 12px; font-size: 14px; word-break: break-all; }
     .message-item.self .message-bubble { background: var(--accent-color); border: none; }
     
-    .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; }
+    .chat-input-area { padding: 16px 24px; border-top: 1px solid var(--panel-border); display: flex; gap: 12px; flex-shrink: 0; background: rgba(6, 8, 13, 0.8); }
     .chat-input { flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; color: var(--text-primary); outline: none; }
 
     /* ボタン共通 */
