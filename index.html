@@ -179,7 +179,7 @@
       </div>
 
       <button class="btn-action-primary" style="margin-top:6px;" onclick="saveInitialProfile()">コミュニティに入る</button>
-      <p style="font-size:10px; color:var(--text-muted); text-align:center;">※利用規約・安心安全ガイドラインは画面最下部から確認できます</p>
+      <p style="font-size:10px; color:var(--text-muted); text-align:center;">※利用規約・安心安全ガイドラインは画面最下部からいつでもご確認いただけます</p>
     </div>
   </div>
 
@@ -211,8 +211,8 @@
 
   <div id="modal-info-policy" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
-      <div id="info-modal-title" style="font-size:16px; font-weight:700; text-align:center;">情報</div>
-      <div id="info-modal-body" style="font-size:12px; line-height:1.6; color:var(--text-secondary); max-height:300px; overflow-y:auto; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:8px; padding:12px;"></div>
+      <div id="info-modal-title" style="font-size:16px; font-weight:700; text-align:center;">利用規約</div>
+      <div id="info-modal-body" style="font-size:12px; line-height:1.7; color:var(--text-secondary); max-height:320px; overflow-y:auto; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:8px; padding:12px;"></div>
       <button class="btn-action-primary" onclick="closeInfoModal()">閉じる</button>
     </div>
   </div>
@@ -371,7 +371,7 @@
       }
     }
 
-    /* フッターモーダル表示関数 */
+    /* フッター用モーダル（より詳しく、安心できるトーンに長文化） */
     function openInfoModal(type) {
       const modal = document.getElementById('modal-info-policy');
       const title = document.getElementById('info-modal-title');
@@ -380,35 +380,47 @@
       if (type === 'safety') {
         title.innerText = '🛡️ 安心・安全ガイドライン';
         body.innerHTML = `
-          <strong>【性的な言動・下ネタの厳重禁止】</strong><br>
-          当サービスでは、性的な発言、わいせつな画像・動画の送信、相手を不快にさせるハラスメント行為を固く禁じています。違反者は即座に利用停止措置を実施します。<br><br>
-          <strong>【女性・10代の方でも安心の取り組み】</strong><br>
-          ・出会い目的（異性紹介）の利用を厳密に制限しています。<br>
-          ・不快な相手を即座に遮断できるワンタップ「ブロック機能」を標準搭載。<br>
-          ・LINEなどの個人連絡先の強要や金銭取引を禁止しています。<br><br>
-          万が一不快なユーザーを見かけた場合は、相手のプロフィールにある「ブロック」ボタンをご活用ください。
+          <strong>【快適なコミュニケーションのために】</strong><br>
+          HIMA-LABは、すべてのユーザーの皆様がリラックスして日常の雑談や交流を楽しめる空間づくりを目指しています。そのため、性的な言動や不快感を与える表現などはあらかじめ禁止しておりますので、女性や10代の方も安心してご利用いただけます。<br><br>
+          <strong>【安心してご利用いただくための取り組み】</strong><br>
+          ・<strong>出会い系サイトではありません：</strong>本サービスは異性交際を目的としたサービスではなく、健全な趣味や雑談のためのコミュニティです。<br>
+          ・<strong>ブロック機能の常時完備：</strong>万が一合わないと感じるユーザーがいた場合、チャットや一覧画面からいつでもワンタップで遮断（ブロック）することができます。<br>
+          ・<strong>プライバシーとマナーの尊重：</strong>LINEなどの外部連絡先の強制や、過度な詮索を行わない健全なコミュニケーションをお願いしております。<br><br>
+          皆様が心地よく利用できるよう、ご協力をお願い申し上げます。
         `;
       } else if (type === 'terms') {
         title.innerText = '利用規約';
         body.innerHTML = `
-          <strong>【第1条（目的）】</strong><br>
-          本サービスはリアルタイムWebコミュニティとして趣味の雑談を楽しむための場です。インターネット異性紹介事業（出会い系サイト）ではありません。<br><br>
-          <strong>【第2条（禁止事項）】</strong><br>
-          1. 異性紹介や出会いを直接の目的とする行為<br>
-          2. 性的な言動、暴言、誹謗中傷、差別的発言<br>
-          3. 個人情報の無断公開、外部サービスの勧誘
+          <strong>第1条（総則）</strong><br>
+          本利用規約（以下「本規約」）は、HIMA-LAB（以下「当サービス」）が提供するオンラインコミュニティおよびリアルタイム通信機能の利用条件を定めるものです。ユーザーは本規約に同意した上で、本サービスを利用するものとします。<br><br>
+          <strong>第2条（サービスの性質について）</strong><br>
+          当サービスは、オンライン上のリアルタイムな雑談や情報交換を目的としたプラットフォームであり、インターネット異性紹介事業（出会い系サイト）ではありません。異性との出会いや交際を主な目的とした利用は固くお断りしております。<br><br>
+          <strong>第3条（禁止事項）</strong><br>
+          ユーザーは、本サービスの利用にあたり、以下の行為を行ってはなりません。<br>
+          1. 異性紹介・出会い・わいせつな言動を目的とした投稿、メッセージ送信、および音声・ビデオ通話の利用。<br>
+          2. 他のユーザーに対する暴言、誹謗中傷、ハラスメント、または精神的な負担を与える行為。<br>
+          3. 個人情報の無断収集、外部連絡先（SNS等）の交換強要、および商業目的の勧誘。<br>
+          4. 同一人物による複数アカウントの悪用や、システムへの不正アクセス。<br><br>
+          <strong>第4条（利用制限および免責事項）</strong><br>
+          運営側は、規約に違反したユーザーに対して利用停止などの措置を行う権利を有します。また、ユーザー間で発生したトラブルについて、運営は一切の責任を負いません。不快な相手とは速やかにブロック機能をご利用ください。
         `;
       } else if (type === 'privacy') {
         title.innerText = 'プライバシーポリシー';
         body.innerHTML = `
-          当サービスでは、円滑なリアルタイム通信の提供を目的に一時的なデバイスIDおよびオンライン状態のみを使用します。取得したデータが第三者へ売却・譲渡されることはありません。
+          <strong>1. 基本方針</strong><br>
+          HIMA-LAB（以下「当サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。<br><br>
+          <strong>2. 取得する情報について</strong><br>
+          当サービスでは、円滑なリアルタイム通信やセッション維持のため、一時的なデバイス識別子、ユーザーネーム、選択されたアバターアイコンのみを取り扱います。サーバー上に永続的な個人プロフィールが蓄積されることはありません。<br><br>
+          <strong>3. 情報の第三者提供</strong><br>
+          取得した情報が第三者に売却、譲渡、または開示されることは一切ありません。通信はセキュアな環境下で保護されます。
         `;
       } else if (type === 'company') {
         title.innerText = '運営情報';
         body.innerHTML = `
           <strong>サービス名：</strong> HIMA-LAB Realtime Community<br>
-          <strong>目的：</strong> 雑談・Webコミュニティ<br>
-          <strong>お問い合わせ：</strong> support@hima-lab.example
+          <strong>運営目的：</strong> Webリアルタイムコミュニケーションの提供および技術検証<br>
+          <strong>お問い合わせ：</strong> support@hima-lab.example<br><br>
+          ※ご不明な点や不具合の報告、安心・安全に関するお問い合わせは上記メールアドレスまでご連絡ください。
         `;
       }
       modal.style.display = 'flex';
@@ -521,7 +533,7 @@
         }
       });
 
-      /* チャット退室通知（相手画面にシステムメッセージ表示） */
+      /* チャット退室通知 */
       room.on('broadcast', { event: 'chat_leave' }, (payload) => {
         const data = payload.payload;
         if (currentPartner && data.senderId === currentPartner.id && data.targetId === myUserId) {
