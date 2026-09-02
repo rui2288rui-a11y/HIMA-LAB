@@ -1623,6 +1623,83 @@ async function signupWithEmail() {
     return;
   }
 
+  // この端末ですでにアカウントを登録しているか確認
+  const deviceRegistered = localStorage.getItem('resonance_device_registered');
+
+  if (deviceRegistered === '1') {
+    message.textContent = 'この端末ではすでにアカウントが登録されています。';
+    return;
+  }
+
+  message.textContent = 'アカウントを作成しています…';
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent =
+      'アカウントを作成できませんでした：' + error.message;
+    return;
+  }
+
+  if (!data.user) {
+    message.textContent = 'アカウント作成に失敗しました。';
+    return;
+  }
+
+  // ログイン状態になった場合だけ端末を登録
+  if (data.session) {
+    myAuthUserId = data.user.id;
+
+    const { error: deviceError } = await supabaseClient
+      .from('user_devices')
+      .insert({
+        device_id: myDeviceId,
+        auth_user_id: myAuthUserId
+      });
+
+    if (deviceError) {
+      console.error('端末登録エラー:', deviceError);
+      message.textContent =
+        'この端末の登録に失敗しました：' + deviceError.message;
+      return;
+    }
+
+    localStorage.setItem('resonance_device_registered', '1');
+
+    message.textContent = 'アカウントを作成しました！';
+
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) {
+      authScreen.style.display = 'none';
+    }
+
+    await checkAuthState();
+    openProfileModal(true);
+
+  } else {
+    message.textContent =
+      'アカウントを作成しました。確認メールが届いている場合は、メールを確認してください。';
+  }
+
+  console.log('登録成功:', data.user.id);
+} {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const message = document.getElementById('auth-message');
+
+  if (!email || !password) {
+    message.textContent = 'メールアドレスとパスワードを入力してください。';
+    return;
+  }
+
+  if (password.length < 6) {
+    message.textContent = 'パスワードは6文字以上にしてください。';
+    return;
+  }
+
   message.textContent = 'アカウントを作成しています…';
 
   const { data, error } = await supabaseClient.auth.signUp({
@@ -1665,6 +1742,20 @@ async function checkAuthState() {
     authScreen.style.display = 'none';
     console.log('ログイン済み:', session.user.id);
     myAuthUserId = session.user.id;
+    const { error: deviceError } = await supabaseClient
+  .from('user_devices')
+  .insert({
+    device_id: myDeviceId,
+    auth_user_id: myAuthUserId
+  });
+
+if (!deviceError) {
+  localStorage.setItem('resonance_device_registered', '1');
+} else if (deviceError.code === '23505') {
+  console.log('この端末はすでに別のアカウントに登録されています。');
+} else {
+  console.error('端末登録エラー:', deviceError);
+}
         const { data: blockData, error: blockError } = await supabaseClient
       .from('blocked_users')
       .select('blocked_id')
