@@ -847,10 +847,11 @@ async function reportUser(targetAuthUserId, targetUserName) {
       `${SUPABASE_URL}/functions/v1/send-report-email`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY
-        },
+   headers: {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`
+},
         body: JSON.stringify({
           targetUserName: targetUserName,
           reason: reason.trim()
