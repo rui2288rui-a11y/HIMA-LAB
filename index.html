@@ -886,7 +886,10 @@ if (profileError) {
 
       room.on('broadcast', { event: 'chat_request_send' }, (payload) => {
         const data = payload.payload;
-        if (currentPartner) {
+  if (
+  currentPartner ||
+  document.getElementById('modal-requesting').style.display === 'flex'
+) {
   return;
 }
       if (
@@ -1159,6 +1162,10 @@ if (
     }
 
     function cancelChatRequest() {
+  document.getElementById('modal-requesting').style.display = 'none';
+  selectedTargetUser = null;
+  updateSelectedUserUI();
+} {
       document.getElementById('modal-requesting').style.display = 'none';
     }
 
@@ -1227,6 +1234,8 @@ if (
       }
       endCall(false);
       currentPartner = null;
+     selectedTargetUser = null;
+     updateSelectedUserUI();
       broadcastActiveStatus();
       switchView('view-dashboard');
     }
