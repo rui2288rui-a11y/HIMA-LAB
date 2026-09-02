@@ -1112,7 +1112,7 @@ if (
         payload: {
           targetId: selectedTargetUser.user_id,
           fromId: myUserId,
-          fromAuthId: myAuthUserId,
+         fromAuthUserId: myAuthUserId,
           fromName: myUserName,
           fromAvatar: myAvatar,
           fromGender: myGender,
@@ -1149,13 +1149,14 @@ if (
       });
 
       if (accepted) {
-        currentPartner = {
-          id: pendingIncomingReq.fromId,
-          name: pendingIncomingReq.fromName,
-          avatar: pendingIncomingReq.fromAvatar,
-          gender: pendingIncomingReq.fromGender,
-          bio: pendingIncomingReq.fromBio
-        };
+currentPartner = {
+  id: pendingIncomingReq.fromId,
+  name: pendingIncomingReq.fromName,
+  avatar: pendingIncomingReq.fromAvatar,
+  gender: pendingIncomingReq.fromGender,
+  bio: pendingIncomingReq.fromBio,
+  auth_user_id: pendingIncomingReq.fromAuthUserId
+};
         openDirectChat();
       }
       pendingIncomingReq = null;
