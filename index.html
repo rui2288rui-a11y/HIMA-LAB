@@ -1741,21 +1741,7 @@ async function checkAuthState() {
     // ログイン済み
     authScreen.style.display = 'none';
     console.log('ログイン済み:', session.user.id);
-    myAuthUserId = session.user.id;
-    const { error: deviceError } = await supabaseClient
-  .from('user_devices')
-  .insert({
-    device_id: myDeviceId,
-    auth_user_id: myAuthUserId
-  });
 
-if (!deviceError) {
-  localStorage.setItem('resonance_device_registered', '1');
-} else if (deviceError.code === '23505') {
-  console.log('この端末はすでに別のアカウントに登録されています。');
-} else {
-  console.error('端末登録エラー:', deviceError);
-}
         const { data: blockData, error: blockError } = await supabaseClient
       .from('blocked_users')
       .select('blocked_id')
