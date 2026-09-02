@@ -168,7 +168,27 @@
     width: 100%;
     min-width: 0;
   }
+  body.mode-mobile #view-dashboard.active {
+    height: auto !important;
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+  }
 
+  body.mode-mobile #view-dashboard .viewport-panel {
+    flex-shrink: 0;
+    width: 100%;
+  }
+
+  body.mode-mobile #view-dashboard .sidebar-panel {
+    flex-shrink: 0;
+    width: 100%;
+  }
+
+  body.mode-mobile #btn-start-chat-request {
+    max-width: 100%;
+    white-space: normal;
+  }
   .sidebar {
     width: 100%;
     min-width: 0;
