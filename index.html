@@ -368,6 +368,48 @@
   </div>
 </div>
   <div id="canvas-container"></div>
+  <!-- パスワード再設定画面 -->
+<div id="password-reset-screen" style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg-base); align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-card" style="width:100%; max-width:420px;">
+    <div style="font-size:20px; font-weight:700; text-align:center; margin-bottom:8px;">
+      パスワードを再設定
+    </div>
+
+    <p style="font-size:13px; color:var(--text-secondary); text-align:center; line-height:1.6; margin-bottom:18px;">
+      新しいパスワードを入力してください。
+    </p>
+
+    <input
+      type="password"
+      id="new-password"
+      placeholder="新しいパスワード（6文字以上）"
+      autocomplete="new-password"
+      style="width:100%; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); font-size:14px; outline:none; margin-bottom:10px;"
+    >
+
+    <input
+      type="password"
+      id="new-password-confirm"
+      placeholder="新しいパスワード（確認）"
+      autocomplete="new-password"
+      style="width:100%; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:10px; padding:12px 14px; color:var(--text-primary); font-size:14px; outline:none; margin-bottom:14px;"
+    >
+
+    <button
+      class="btn-action-primary"
+      type="button"
+      onclick="updateNewPassword()"
+      style="width:100%;"
+    >
+      パスワードを変更する
+    </button>
+
+    <div
+      id="password-reset-message"
+      style="font-size:12px; text-align:center; color:var(--text-secondary); min-height:20px; margin-top:12px;"
+    ></div>
+  </div>
+</div>
 
   <!-- 1. プロフィール設定・変更モーダル（規約同意必須化） -->
   <div id="modal-profile" class="modal-backdrop">
@@ -588,6 +630,15 @@
     const SUPABASE_URL = 'https://yssmhumtrdihpketcuux.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc21odW10cmRpaHBrZXRjdXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDAwNjUsImV4cCI6MjEwMzc3NjA2NX0.HOcbBjjw4dnuY4mLRjBmNEYMeIMSodXyvmYeWa0gzzA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    supabaseClient.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    const resetScreen = document.getElementById('password-reset-screen');
+
+    if (resetScreen) {
+      resetScreen.style.display = 'flex';
+    }
+  }
+});
 
     let myDeviceId = localStorage.getItem('resonance_device_id');
     if (!myDeviceId) {
@@ -1769,7 +1820,46 @@ async function loginWithEmail() {
   console.log('ログイン成功:', data.user.id);
   openProfileModal(true);
 }
+async function updateNewPassword() {
+  const password = document.getElementById('new-password').value;
+  const confirmPassword = document.getElementById('new-password-confirm').value;
+  const message = document.getElementById('password-reset-message');
 
+  if (!password || !confirmPassword) {
+    message.textContent = '新しいパスワードを2回入力してください。';
+    return;
+  }
+
+  if (password.length < 6) {
+    message.textContent = 'パスワードは6文字以上にしてください。';
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    message.textContent = '2つのパスワードが一致していません。';
+    return;
+  }
+
+  message.textContent = 'パスワードを変更しています…';
+
+  const { error } = await supabaseClient.auth.updateUser({
+    password: password
+  });
+
+  if (error) {
+    console.error('パスワード変更エラー:', error);
+    message.textContent =
+      'パスワードの変更に失敗しました：' + error.message;
+    return;
+  }
+
+  message.textContent = 'パスワードを変更しました！';
+
+  setTimeout(() => {
+    document.getElementById('password-reset-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+  }, 1200);
+}
 async function resetPassword() {
   const email = document.getElementById('auth-email').value.trim();
   const message = document.getElementById('auth-message');
