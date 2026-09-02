@@ -1207,7 +1207,7 @@ if (
           <div style="font-weight:700; font-size:16px;">${escapeHTML(currentPartner.name)}</div>
           <div style="font-size:11px; padding:2px 10px; background:var(--panel-border); border-radius:10px; color:var(--text-secondary);">性別: ${escapeHTML(currentPartner.gender || '非公開')}</div>
           <div style="font-size:12px; color:var(--text-secondary); max-width:220px; line-height:1.5;">${escapeHTML(currentPartner.bio || '自己紹介なし')}</div>
-          <button class="btn-action-danger" style="margin-top:16px;" onclick="blockUser('${currentPartner.id}', decodeURIComponent('${encodeURIComponent(currentPartner.name || '')}'))">🚫 相手をブロック</button>
+         <button class="btn-action-danger" style="margin-top:16px;" onclick="blockUser('${currentPartner.id}', decodeURIComponent('${encodeURIComponent(currentPartner.name || '')}'), '${currentPartner.auth_user_id}')">🚫 相手をブロック</button>
         </div>
       `;
       switchView('view-chat');
@@ -1216,6 +1216,7 @@ if (
     }
 
     function leaveChat(notifyPartner = true) {
+      document.getElementById('modal-requesting').style.display = 'none';
       if (notifyPartner && currentPartner) {
         room.send({
           type: 'broadcast',
