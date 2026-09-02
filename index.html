@@ -979,7 +979,7 @@ if (profileError) {
                 <div style="font-size:11px; color:var(--text-muted);">${escapeHTML(u.bio || '自己紹介なし')}</div>
               </div>
             </div>
-            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'))">遮断</button>` : `<span style="font-size:11px; color:var(--danger-color);">ブロック済</span>`}
+            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">遮断</button>` : `<span style="font-size:11px; color:var(--danger-color);">ブロック済</span>`}
           </div>
         `;
       }).join('');
@@ -1562,6 +1562,31 @@ async function checkAuthState() {
     authScreen.style.display = 'none';
     console.log('ログイン済み:', session.user.id);
     myAuthUserId = session.user.id;
+        const { data: blockData, error: blockError } = await supabaseClient
+      .from('blocked_users')
+      .select('blocked_id')
+      .eq('blocker_id', myAuthUserId);
+
+    if (blockError) {
+      console.error('ブロック情報の読み込みエラー:', blockError);
+    } else {
+      console.log('ブロック情報の読み込み成功:', blockData);
+
+      const blockedAuthIds = blockData.map(row => row.blocked_id);
+
+      onlineUsers.forEach(user => {
+        if (user.auth_user_id && blockedAuthIds.includes(user.auth_user_id)) {
+          if (!blockedUsers.includes(user.user_id)) {
+            blockedUsers.push(user.user_id);
+          }
+        }
+      });
+
+      localStorage.setItem(
+        'resonance_blocked_users',
+        JSON.stringify(blockedUsers)
+      );
+    }
     const { data: profile, error: profileError } = await supabaseClient
   .from('profiles')
   .select('username, gender, avatar_url, bio')
