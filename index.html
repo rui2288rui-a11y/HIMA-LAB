@@ -544,16 +544,6 @@ function blockUser(targetUserId, targetUserName, targetAuthUserId) {
         }
       });
   }
-    if (room && targetUserId) {
-    room.send({
-      type: 'broadcast',
-      event: 'block_user',
-      payload: {
-        senderId: myUserId,
-        targetId: targetUserId
-      }
-    });
-  }
   alert(`${targetUserName} をブロックしました。`);
 
   if (currentPartner && currentPartner.id === targetUserId) {
@@ -928,36 +918,6 @@ if (profileError) {
             alert(`${data.senderName} が退室したためチャットを終了します。`);
             leaveChat(false);
           }, 800);
-        }
-      });
-      room.on('broadcast', { event: 'block_user' }, (payload) => {
-        const data = payload.payload;
-
-        // 自分がブロック対象だった場合
-        if (data.targetId === myUserId) {
-          if (!blockedUsers.includes(data.senderId)) {
-            blockedUsers.push(data.senderId);
-            localStorage.setItem(
-              'resonance_blocked_users',
-              JSON.stringify(blockedUsers)
-            );
-          }
-
-          // その相手と現在チャット中なら強制終了
-          if (currentPartner && currentPartner.id === data.senderId) {
-            appendSystemMessage('このユーザーとの接続が終了しました。');
-            setTimeout(() => {
-              leaveChat(false);
-            }, 300);
-          }
-
-          // ユーザー一覧からも消す
-          if (selectedTargetUser && selectedTargetUser.user_id === data.senderId) {
-            selectedTargetUser = null;
-            updateSelectedUserUI();
-          }
-
-          renderSidebarUsers();
         }
       });
       room.on('broadcast', { event: 'chat_message' }, (payload) => {
