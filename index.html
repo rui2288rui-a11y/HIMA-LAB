@@ -1437,6 +1437,7 @@ async function loginWithEmail() {
     return;
   }
   myAuthUserId = data.user.id;
+  await checkAuthState();
   message.textContent = 'ログインしました！';
 
   const authScreen = document.getElementById('auth-screen');
