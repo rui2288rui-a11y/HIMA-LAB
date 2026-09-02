@@ -843,18 +843,27 @@ async function reportUser(targetAuthUserId, targetUserName) {
   }
 
   try {
-    const { error: emailError } = await supabaseClient.functions.invoke(
-      'send-report-email',
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/send-report-email`,
       {
-        body: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY
+        },
+        body: JSON.stringify({
           targetUserName: targetUserName,
           reason: reason.trim()
-        }
+        })
       }
     );
 
-    if (emailError) {
-      console.error('通報メール送信エラー:', emailError);
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('通報メール送信エラー:', result);
+    } else {
+      console.log('通報メール送信成功:', result);
     }
   } catch (emailError) {
     console.error('通報メール送信中のエラー:', emailError);
