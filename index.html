@@ -514,7 +514,9 @@
 
 function blockUser(targetUserId, targetUserName, targetAuthUserId) {
   if (!confirm(`${targetUserName} をブロックしますか？\n（相手に通知が届くことはありません）`)) return;
-
+  if (currentPartner && currentPartner.id === targetUserId) {
+    console.log('チャット中の相手をブロックしました');
+  }
   if (!blockedUsers.includes(targetUserId)) {
     blockedUsers.push(targetUserId);
     localStorage.setItem('resonance_blocked_users', JSON.stringify(blockedUsers));
@@ -592,6 +594,41 @@ function blockUser(targetUserId, targetUserName, targetAuthUserId) {
   renderSidebarUsers();
 
   alert(`${targetUserName} のブロックを解除しました。`);
+}
+    async function reportUser(targetAuthUserId, targetUserName) {
+  if (!myAuthUserId || !targetAuthUserId) {
+    alert('通報情報を取得できませんでした。');
+    return;
+  }
+  const reportKey = `resonance_report_${myAuthUserId}_${targetAuthUserId}`;
+
+  if (localStorage.getItem(reportKey)) {
+    alert('このユーザーはすでに通報しています。');
+    return;
+  }
+  const reason = prompt(
+    `${targetUserName} を通報します。\n\n` +
+    `理由を入力してください。\n` +
+    `例：不適切な発言 / 迷惑行為 / なりすまし / その他`
+  );
+
+  if (!reason || !reason.trim()) return;
+
+  const { error } = await supabaseClient
+    .from('reports')
+    .insert({
+      reporter_id: myAuthUserId,
+      reported_id: targetAuthUserId,
+      reason: reason.trim()
+    });
+
+  if (error) {
+    console.error('通報保存エラー:', error);
+    alert('通報の送信に失敗しました。');
+    return;
+  }
+  localStorage.setItem(reportKey, '1');
+  alert(`${targetUserName} を通報しました。`);
 }
     function openInfoModal(type) {
       const modal = document.getElementById('modal-info-policy');
@@ -1033,7 +1070,13 @@ if (profileError) {
                 <div style="font-size:11px; color:var(--text-muted);">${escapeHTML(u.bio || '自己紹介なし')}</div>
               </div>
             </div>
-           ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">遮断</button>` : `<button class="btn-action-secondary" onclick="event.stopPropagation(); unblockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">ブロック解除</button>`}
+<div style="display:flex; gap:6px; align-items:center;">
+  ${!isBlocked
+    ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">遮断</button>`
+    : `<button class="btn-action-secondary" onclick="event.stopPropagation(); unblockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">ブロック解除</button>`
+  }
+  <button class="btn-action-secondary" onclick="event.stopPropagation(); reportUser('${u.auth_user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'))">通報</button>
+</div>
           </div>
         `;
       }).join('');
