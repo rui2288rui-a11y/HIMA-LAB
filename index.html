@@ -356,6 +356,13 @@
     >
       新規アカウントを作る
     </button>
+    <button
+  class="btn-action-secondary"
+  type="button"
+  onclick="resetPassword()"
+>
+  パスワードを忘れた方はこちら
+</button>
 
     <div id="auth-message" style="font-size:12px; text-align:center; color:var(--text-secondary); min-height:20px;"></div>
   </div>
@@ -1763,7 +1770,31 @@ async function loginWithEmail() {
   openProfileModal(true);
 }
 
+async function resetPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  const message = document.getElementById('auth-message');
 
+  if (!email) {
+    message.textContent = '先にメールアドレスを入力してください。';
+    return;
+  }
+
+  message.textContent = 'パスワード再設定メールを送信しています…';
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+
+  if (error) {
+    console.error('パスワード再設定エラー:', error);
+    message.textContent =
+      '再設定メールを送信できませんでした：' + error.message;
+    return;
+  }
+
+  message.textContent =
+    'パスワード再設定メールを送信しました。メールを確認してください。';
+}
 async function signupWithEmail() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
