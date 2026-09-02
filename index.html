@@ -521,6 +521,14 @@ function blockUser(targetUserId, targetUserName, targetAuthUserId) {
     blockedUsers.push(targetUserId);
     localStorage.setItem('resonance_blocked_users', JSON.stringify(blockedUsers));
   }
+  if (targetAuthUserId && !blockedAuthUserIds.includes(targetAuthUserId)) {
+  blockedAuthUserIds.push(targetAuthUserId);
+
+  localStorage.setItem(
+    'resonance_blocked_auth_users',
+    JSON.stringify(blockedAuthUserIds)
+  );
+}
   if (myAuthUserId && targetAuthUserId) {
     supabaseClient
       .from('blocked_users')
@@ -1110,7 +1118,13 @@ if (profileError) {
 
     function sendChatRequest() {
       if (!room || !selectedTargetUser) return;
-
+if (selectedTargetUser.user_id === myUserId) {
+  alert('自分自身にはチャットリクエストを送信できません。');
+  return;
+}
+      if (document.getElementById('modal-requesting').style.display === 'flex') {
+  return;
+}
 if (
   blockedUsers.includes(selectedTargetUser.user_id) ||
   (selectedTargetUser.auth_user_id &&
