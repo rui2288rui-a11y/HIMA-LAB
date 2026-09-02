@@ -1125,6 +1125,10 @@ if (selectedTargetUser.user_id === myUserId) {
       if (document.getElementById('modal-requesting').style.display === 'flex') {
   return;
 }
+      if (activeChatUserIds.includes(selectedTargetUser.user_id)) {
+  alert('このユーザーは現在チャット中です。');
+  return;
+}
 if (
   blockedUsers.includes(selectedTargetUser.user_id) ||
   (selectedTargetUser.auth_user_id &&
