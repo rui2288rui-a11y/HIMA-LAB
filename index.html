@@ -511,14 +511,38 @@
       } catch (e) {}
     }
 
-function blockUser(targetUserId, targetUserName) {
+function blockUser(targetUserId, targetUserName, targetAuthUserId) {
   if (!confirm(`${targetUserName} をブロックしますか？\n（相手に通知が届くことはありません）`)) return;
 
   if (!blockedUsers.includes(targetUserId)) {
     blockedUsers.push(targetUserId);
     localStorage.setItem('resonance_blocked_users', JSON.stringify(blockedUsers));
   }
-
+  if (myAuthUserId && targetAuthUserId) {
+    supabaseClient
+      .from('blocked_users')
+      .insert({
+        blocker_id: myAuthUserId,
+        blocked_id: targetAuthUserId
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.error('ブロック情報の保存に失敗しました:', error);
+        } else {
+          console.log('ブロック情報をSupabaseに保存しました');
+        }
+      });
+  }
+    if (room && targetUserId) {
+    room.send({
+      type: 'broadcast',
+      event: 'block_user',
+      payload: {
+        senderId: myUserId,
+        targetId: targetUserId
+      }
+    });
+  }
   alert(`${targetUserName} をブロックしました。`);
 
   if (currentPartner && currentPartner.id === targetUserId) {
