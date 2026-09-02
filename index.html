@@ -1742,7 +1742,6 @@ async function checkAuthState() {
     authScreen.style.display = 'none';
     console.log('ログイン済み:', session.user.id);
 myAuthUserId = session.user.id;
-localStorage.setItem('resonance_device_registered', '1');
         const { data: blockData, error: blockError } = await supabaseClient
       .from('blocked_users')
       .select('blocked_id')
