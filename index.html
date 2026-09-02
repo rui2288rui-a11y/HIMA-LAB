@@ -452,6 +452,7 @@
     let currentPartner = null;
     let pendingIncomingReq = null;
     let blockedUsers = JSON.parse(localStorage.getItem('resonance_blocked_users') || '[]');
+    let blockedAuthUserIds = JSON.parse(localStorage.getItem('resonance_blocked_auth_users') || '[]');
 
     let unreadCount = 0;
     let typingTimer = null;
@@ -771,6 +772,20 @@ if (profileError) {
         const state = room.presenceState();
         onlineUsers = [];
         for (let id in state) { state[id].forEach(u => onlineUsers.push(u)); }
+                onlineUsers.forEach(user => {
+          if (
+            user.auth_user_id &&
+            blockedAuthUserIds.includes(user.auth_user_id) &&
+            !blockedUsers.includes(user.user_id)
+          ) {
+            blockedUsers.push(user.user_id);
+          }
+        });
+
+        localStorage.setItem(
+          'resonance_blocked_users',
+          JSON.stringify(blockedUsers)
+        );
         document.getElementById('online-count').innerText = `${onlineUsers.filter(u => u.device_id !== myDeviceId).length} online`;
         renderSidebarUsers();
       });
@@ -1571,20 +1586,11 @@ async function checkAuthState() {
       console.error('ブロック情報の読み込みエラー:', blockError);
     } else {
       console.log('ブロック情報の読み込み成功:', blockData);
-
-      const blockedAuthIds = blockData.map(row => row.blocked_id);
-
-      onlineUsers.forEach(user => {
-        if (user.auth_user_id && blockedAuthIds.includes(user.auth_user_id)) {
-          if (!blockedUsers.includes(user.user_id)) {
-            blockedUsers.push(user.user_id);
-          }
-        }
-      });
+      blockedAuthUserIds = blockData.map(row => row.blocked_id);
 
       localStorage.setItem(
-        'resonance_blocked_users',
-        JSON.stringify(blockedUsers)
+        'resonance_blocked_auth_users',
+        JSON.stringify(blockedAuthUserIds)
       );
     }
     const { data: profile, error: profileError } = await supabaseClient
