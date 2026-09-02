@@ -807,17 +807,19 @@ function blockUser(targetUserId, targetUserName, targetAuthUserId) {
 
   alert(`${targetUserName} のブロックを解除しました。`);
 }
-    async function reportUser(targetAuthUserId, targetUserName) {
+async function reportUser(targetAuthUserId, targetUserName) {
   if (!myAuthUserId || !targetAuthUserId) {
     alert('通報情報を取得できませんでした。');
     return;
   }
+
   const reportKey = `resonance_report_${myAuthUserId}_${targetAuthUserId}`;
 
   if (localStorage.getItem(reportKey)) {
     alert('このユーザーはすでに通報しています。');
     return;
   }
+
   const reason = prompt(
     `${targetUserName} を通報します。\n\n` +
     `理由を入力してください。\n` +
@@ -839,7 +841,27 @@ function blockUser(targetUserId, targetUserName, targetAuthUserId) {
     alert('通報の送信に失敗しました。');
     return;
   }
+
+  try {
+    const { error: emailError } = await supabaseClient.functions.invoke(
+      'send-report-email',
+      {
+        body: {
+          targetUserName: targetUserName,
+          reason: reason.trim()
+        }
+      }
+    );
+
+    if (emailError) {
+      console.error('通報メール送信エラー:', emailError);
+    }
+  } catch (emailError) {
+    console.error('通報メール送信中のエラー:', emailError);
+  }
+
   localStorage.setItem(reportKey, '1');
+
   alert(`${targetUserName} を通報しました。`);
 }
 function openInfoModal(type) {
