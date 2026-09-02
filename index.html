@@ -1685,47 +1685,7 @@ async function signupWithEmail() {
   }
 
   console.log('登録成功:', data.user.id);
-} {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const message = document.getElementById('auth-message');
-
-  if (!email || !password) {
-    message.textContent = 'メールアドレスとパスワードを入力してください。';
-    return;
-  }
-
-  if (password.length < 6) {
-    message.textContent = 'パスワードは6文字以上にしてください。';
-    return;
-  }
-
-  message.textContent = 'アカウントを作成しています…';
-
-  const { data, error } = await supabaseClient.auth.signUp({
-    email: email,
-    password: password
-  });
-
-  if (error) {
-    message.textContent = 'アカウントを作成できませんでした：' + error.message;
-    return;
-  }
-
-  if (data.session) {
-    message.textContent = 'アカウントを作成しました！';
-
-    const authScreen = document.getElementById('auth-screen');
-    if (authScreen) {
-      authScreen.style.display = 'none';
-    }
-  } else {
-    message.textContent =
-      'アカウントを作成しました。確認メールが届いている場合は、メールを確認してください。';
-  }
-
-  console.log('登録成功:', data.user?.id);
-}
+} 
     // ===== ログイン状態の確認 =====
 
 async function checkAuthState() {
