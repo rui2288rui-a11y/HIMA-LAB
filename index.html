@@ -511,22 +511,24 @@
       } catch (e) {}
     }
 
-    function blockUser(targetUserId, targetUserName) {
-      if (!confirm(`${targetUserName} をブロックしますか？\n（相手に通知が届くことはありません）`)) return;
-      if (!blockedUsers.includes(targetUserId)) {
-        blockedUsers.push(targetUserId);
-        localStorage.setItem('resonance_blocked_users', JSON.stringify(blockedUsers));
-      }
-      alert(`${targetUserName} をブロックしました。`);
-      if (currentPartner && currentPartner.id === targetUserId) {
-        leaveChat(false);
-      } else {
-        selectedTargetUser = null;
-        updateSelectedUserUI();
-        broadcastActiveStatus();
-      }
-    }
+function blockUser(targetUserId, targetUserName) {
+  if (!confirm(`${targetUserName} をブロックしますか？\n（相手に通知が届くことはありません）`)) return;
 
+  if (!blockedUsers.includes(targetUserId)) {
+    blockedUsers.push(targetUserId);
+    localStorage.setItem('resonance_blocked_users', JSON.stringify(blockedUsers));
+  }
+
+  alert(`${targetUserName} をブロックしました。`);
+
+  if (currentPartner && currentPartner.id === targetUserId) {
+    leaveChat(false);
+  } else {
+    selectedTargetUser = null;
+    updateSelectedUserUI();
+    broadcastActiveStatus();
+  }
+}
     function openInfoModal(type) {
       const modal = document.getElementById('modal-info-policy');
       const title = document.getElementById('info-modal-title');
@@ -731,7 +733,7 @@ if (profileError) {
         initRealtime();
       } else {
         if (room) {
-          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
+          room.track({ user_id: myUserId, auth_user_id: myAuthUserId,device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
           broadcastActiveStatus();
         }
       }
@@ -795,7 +797,36 @@ if (profileError) {
           }, 800);
         }
       });
+      room.on('broadcast', { event: 'block_user' }, (payload) => {
+        const data = payload.payload;
 
+        // 自分がブロック対象だった場合
+        if (data.targetId === myUserId) {
+          if (!blockedUsers.includes(data.senderId)) {
+            blockedUsers.push(data.senderId);
+            localStorage.setItem(
+              'resonance_blocked_users',
+              JSON.stringify(blockedUsers)
+            );
+          }
+
+          // その相手と現在チャット中なら強制終了
+          if (currentPartner && currentPartner.id === data.senderId) {
+            appendSystemMessage('このユーザーとの接続が終了しました。');
+            setTimeout(() => {
+              leaveChat(false);
+            }, 300);
+          }
+
+          // ユーザー一覧からも消す
+          if (selectedTargetUser && selectedTargetUser.user_id === data.senderId) {
+            selectedTargetUser = null;
+            updateSelectedUserUI();
+          }
+
+          renderSidebarUsers();
+        }
+      });
       room.on('broadcast', { event: 'chat_message' }, (payload) => {
         const data = payload.payload;
         if (blockedUsers.includes(data.senderId)) return;
@@ -881,7 +912,7 @@ if (profileError) {
 
       room.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          room.track({ user_id: myUserId, device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
+          room.track({ user_id: myUserId, auth_user_id: myAuthUserId,device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
         }
       });
     }
