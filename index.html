@@ -554,6 +554,45 @@ function blockUser(targetUserId, targetUserName, targetAuthUserId) {
     broadcastActiveStatus();
   }
 }
+    async function unblockUser(targetUserId, targetUserName, targetAuthUserId) {
+  if (!confirm(`${targetUserName} のブロックを解除しますか？`)) return;
+
+  blockedUsers = blockedUsers.filter(id => id !== targetUserId);
+
+  if (targetAuthUserId) {
+    blockedAuthUserIds = blockedAuthUserIds.filter(
+      id => id !== targetAuthUserId
+    );
+
+    const { error } = await supabaseClient
+      .from('blocked_users')
+      .delete()
+      .eq('blocker_id', myAuthUserId)
+      .eq('blocked_id', targetAuthUserId);
+
+    if (error) {
+      console.error('ブロック解除の保存に失敗しました:', error);
+      alert('ブロック解除に失敗しました。');
+      return;
+    }
+  }
+
+  localStorage.setItem(
+    'resonance_blocked_users',
+    JSON.stringify(blockedUsers)
+  );
+
+  localStorage.setItem(
+    'resonance_blocked_auth_users',
+    JSON.stringify(blockedAuthUserIds)
+  );
+
+  selectedTargetUser = null;
+  updateSelectedUserUI();
+  renderSidebarUsers();
+
+  alert(`${targetUserName} のブロックを解除しました。`);
+}
     function openInfoModal(type) {
       const modal = document.getElementById('modal-info-policy');
       const title = document.getElementById('info-modal-title');
@@ -994,7 +1033,7 @@ if (profileError) {
                 <div style="font-size:11px; color:var(--text-muted);">${escapeHTML(u.bio || '自己紹介なし')}</div>
               </div>
             </div>
-            ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">遮断</button>` : `<span style="font-size:11px; color:var(--danger-color);">ブロック済</span>`}
+           ${!isBlocked ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">遮断</button>` : `<button class="btn-action-secondary" onclick="event.stopPropagation(); unblockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">ブロック解除</button>`}
           </div>
         `;
       }).join('');
