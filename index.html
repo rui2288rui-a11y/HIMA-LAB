@@ -878,7 +878,11 @@ if (profileError) {
 
       room.on('broadcast', { event: 'chat_request_send' }, (payload) => {
         const data = payload.payload;
-        if (data.targetId === myUserId && !blockedUsers.includes(data.fromId)) {
+      if (
+  data.targetId === myUserId &&
+  !blockedUsers.includes(data.fromId) &&
+  !(data.fromAuthId && blockedAuthUserIds.includes(data.fromAuthId))
+) {
           pendingIncomingReq = data;
           document.getElementById('incoming-req-avatar').innerHTML = renderAvatarHTML(data.fromAvatar, '56px');
           document.getElementById('incoming-req-name').innerText = data.fromName;
@@ -1106,6 +1110,15 @@ if (profileError) {
 
     function sendChatRequest() {
       if (!room || !selectedTargetUser) return;
+
+if (
+  blockedUsers.includes(selectedTargetUser.user_id) ||
+  (selectedTargetUser.auth_user_id &&
+    blockedAuthUserIds.includes(selectedTargetUser.auth_user_id))
+) {
+  alert('このユーザーはブロック中のため、チャットリクエストを送信できません。');
+  return;
+}
       document.getElementById('request-target-name').innerText = selectedTargetUser.username;
       document.getElementById('modal-requesting').style.display = 'flex';
 
@@ -1115,6 +1128,7 @@ if (profileError) {
         payload: {
           targetId: selectedTargetUser.user_id,
           fromId: myUserId,
+          fromAuthId: myAuthUserId,
           fromName: myUserName,
           fromAvatar: myAvatar,
           fromGender: myGender,
