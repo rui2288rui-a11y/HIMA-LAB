@@ -1317,7 +1317,14 @@ if (!room) {
         if (data.targetId === myUserId) {
           document.getElementById('modal-requesting').style.display = 'none';
           if (data.accepted) {
-            currentPartner = { id: data.responderId, name: data.responderName, avatar: data.responderAvatar, gender: data.responderGender, bio: data.responderBio };
+            currentPartner = {
+  id: data.responderId,
+  name: data.responderName,
+  avatar: data.responderAvatar,
+  gender: data.responderGender,
+  bio: data.responderBio,
+  auth_user_id: data.responderAuthUserId
+};
             openDirectChat();
           } else {
             alert(`${data.responderName} がリクエストを見送りました。`);
@@ -1555,6 +1562,7 @@ if (
         payload: {
           targetId: pendingIncomingReq.fromId,
           responderId: myUserId,
+          responderAuthUserId: myAuthUserId,
           responderName: myUserName,
           responderAvatar: myAvatar,
           responderGender: myGender,
