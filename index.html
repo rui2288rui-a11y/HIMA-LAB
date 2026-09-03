@@ -644,7 +644,34 @@
     }
   }
 });
+const tabChannel = new BroadcastChannel('resonance-tab-lock');
+const TAB_ID = crypto.randomUUID();
+let duplicateTab = false;
 
+tabChannel.postMessage({ type: 'check', tabId: TAB_ID });
+
+tabChannel.onmessage = (event) => {
+  if (event.data.type === 'check' && event.data.tabId !== TAB_ID) {
+    tabChannel.postMessage({ type: 'already-open', tabId: TAB_ID });
+  }
+
+  if (event.data.type === 'already-open' && event.data.tabId !== TAB_ID) {
+    duplicateTab = true;
+
+    alert('Resonance Chatは別のタブですでに開かれています。こちらのタブを閉じてください。');
+
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;
+                  min-height:100vh;font-family:sans-serif;text-align:center;padding:30px;">
+        <div>
+          <h2>⚠️ 別のタブで使用中です</h2>
+          <p>Resonance Chatは同時に複数のタブでは利用できません。</p>
+          <p>このタブを閉じて、先に開いているタブを使用してください。</p>
+        </div>
+      </div>
+    `;
+  }
+};
     let myDeviceId = localStorage.getItem('resonance_device_id');
     if (!myDeviceId) {
       myDeviceId = 'device_' + Math.random().toString(36).substring(2, 15) + Date.now();
