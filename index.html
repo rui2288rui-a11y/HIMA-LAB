@@ -1233,15 +1233,24 @@ if (profileError) {
       document.getElementById('header-badge-name').innerText = myUserName;
       document.getElementById('modal-profile').style.display = 'none';
 
-      if (!isProfileInitialized) {
-        isProfileInitialized = true;
-        initRealtime();
-      } else {
-        if (room) {
-          room.track({ user_id: myUserId, auth_user_id: myAuthUserId,device_id: myDeviceId, username: myUserName, avatar: myAvatar, gender: myGender, bio: myBio });
-          broadcastActiveStatus();
-        }
-      }
+   if (!isProfileInitialized) {
+  isProfileInitialized = true;
+}
+
+if (!room) {
+  initRealtime();
+} else {
+  room.track({
+    user_id: myUserId,
+    auth_user_id: myAuthUserId,
+    device_id: myDeviceId,
+    username: myUserName,
+    avatar: myAvatar,
+    gender: myGender,
+    bio: myBio
+  });
+  broadcastActiveStatus();
+}
     }
 
     let room;
