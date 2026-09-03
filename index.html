@@ -1576,7 +1576,7 @@ if (!room) {
             </div>
 <div style="display:flex; gap:6px; align-items:center;">
   ${!isBlocked
-    ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">遮断</button>`
+    ? `<button class="btn-action-danger" onclick="event.stopPropagation(); blockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">ブロック</button>`
     : `<button class="btn-action-secondary" onclick="event.stopPropagation(); unblockUser('${u.user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'), '${u.auth_user_id}')">ブロック解除</button>`
   }
   <button class="btn-action-secondary" onclick="event.stopPropagation(); reportUser('${u.auth_user_id}', decodeURIComponent('${encodeURIComponent(u.username || '')}'))">通報</button>
