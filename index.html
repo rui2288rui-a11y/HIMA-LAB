@@ -307,6 +307,20 @@
     padding: 0 10px;
     gap: 10px;
     font-size: 11px;
+
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    white-space: nowrap;
+    flex-wrap: nowrap !important;
+  }
+
+  footer > * {
+    flex-shrink: 0;
+  }
+
+  footer > span:last-child {
+    margin-left: 0 !important;
   }
 
   .call-container {
